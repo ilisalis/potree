@@ -70,7 +70,7 @@ export class Sidebar{
 					showArea: false,
 					closed: true,
 					maxMarkers: 3,
-					name: 'Angle'});
+					name: `<span data-i18n="scene.object_angle">`+i18n.t("scene.object_angle")+`</span>`});
 
 				let measurementsRoot = $("#jstree_scene").jstree().get_json("measurements");
 				let jsonNode = measurementsRoot.children.find(child => child.data.uuid === measurement.uuid);
@@ -92,7 +92,7 @@ export class Sidebar{
 					showArea: false,
 					closed: true,
 					maxMarkers: 1,
-					name: 'Point'});
+					name: `<span data-i18n="scene.object_point">`+i18n.t("scene.object_point")+`</span>`});
 
 				let measurementsRoot = $("#jstree_scene").jstree().get_json("measurements");
 				let jsonNode = measurementsRoot.children.find(child => child.data.uuid === measurement.uuid);
@@ -111,7 +111,7 @@ export class Sidebar{
 					showDistances: true,
 					showArea: false,
 					closed: false,
-					name: 'Distance'});
+					name: `<span data-i18n="scene.object_distance">`+i18n.t("scene.object_distance")+`</span>`});
 
 				let measurementsRoot = $("#jstree_scene").jstree().get_json("measurements");
 				let jsonNode = measurementsRoot.children.find(child => child.data.uuid === measurement.uuid);
@@ -132,7 +132,7 @@ export class Sidebar{
 					showArea: false,
 					closed: false,
 					maxMarkers: 2,
-					name: 'Height'});
+					name: `<span data-i18n="scene.object_height">`+i18n.t("scene.object_height")+`</span>`});
 
 				let measurementsRoot = $("#jstree_scene").jstree().get_json("measurements");
 				let jsonNode = measurementsRoot.children.find(child => child.data.uuid === measurement.uuid);
@@ -155,7 +155,7 @@ export class Sidebar{
 					showEdges: false,
 					closed: false,
 					maxMarkers: 3,
-					name: 'Circle'});
+					name: `<span data-i18n="scene.object_circle">`+i18n.t("scene.object_circle")+`</span>`});
 
 				let measurementsRoot = $("#jstree_scene").jstree().get_json("measurements");
 				let jsonNode = measurementsRoot.children.find(child => child.data.uuid === measurement.uuid);
@@ -167,7 +167,7 @@ export class Sidebar{
 		// AZIMUTH
 		elToolbar.append(this.createToolIcon(
 			Potree.resourcePath + '/icons/azimuth.svg',
-			'Azimuth',
+			'[title]tt.azimuth_measurement',
 			() => {
 				$('#menu_measurements').next().slideDown();
 				let measurement = this.measuringTool.startInsertion({
@@ -179,7 +179,7 @@ export class Sidebar{
 					showAzimuth: true,
 					closed: false,
 					maxMarkers: 2,
-					name: 'Azimuth'});
+					name: `<span data-i18n="scene.object_azimuth">`+i18n.t("scene.object_azimuth")+`</span>`});
 
 				let measurementsRoot = $("#jstree_scene").jstree().get_json("measurements");
 				let jsonNode = measurementsRoot.children.find(child => child.data.uuid === measurement.uuid);
@@ -198,7 +198,7 @@ export class Sidebar{
 					showDistances: true,
 					showArea: true,
 					closed: true,
-					name: 'Area'});
+					name: `<span data-i18n="scene.object_area">`+i18n.t("scene.object_area")+`</span>`});
 
 				let measurementsRoot = $("#jstree_scene").jstree().get_json("measurements");
 				let jsonNode = measurementsRoot.children.find(child => child.data.uuid === measurement.uuid);
@@ -253,7 +253,7 @@ export class Sidebar{
 		// ANNOTATION
 		elToolbar.append(this.createToolIcon(
 			Potree.resourcePath + '/icons/annotation.svg',
-			'[title]tt.annotation',
+			'[title]tt.annotation_measurement',
 			() => {
 				$('#menu_measurements').next().slideDown(); ;
 				let annotation = this.viewer.annotationTool.startInsertion();
@@ -277,7 +277,7 @@ export class Sidebar{
 
 		{ // SHOW / HIDE Measurements
 			let elShow = $("#measurement_options_show");
-			elShow.selectgroup({title: "Show/Hide labels"});
+			elShow.selectgroup();
 
 			elShow.find("input").click( (e) => {
 				const show = e.target.value === "SHOW";
@@ -304,10 +304,10 @@ export class Sidebar{
 			let potreeIcon = `${Potree.resourcePath}/icons/file_potree.svg`;
 
 			elExport.append(`
-				Export: <br>
-				<a href="#" download="measure.json"><img name="geojson_export_button" src="${geoJSONIcon}" class="button-icon" style="height: 24px" /></a>
-				<a href="#" download="measure.dxf"><img name="dxf_export_button" src="${dxfIcon}" class="button-icon" style="height: 24px" /></a>
-				<a href="#" download="potree.json"><img name="potree_export_button" src="${potreeIcon}" class="button-icon" style="height: 24px" /></a>
+				<span data-i18n=\"scene.export"></span>: <br>
+				<a href="#" download="measure.json"><img data-i18n="[title]scene.export_json" name="geojson_export_button" src="${geoJSONIcon}" class="button-icon" style="height: 24px" /></a>
+				<a href="#" download="measure.dxf"><img data-i18n="[title]scene.export_dxf" name="dxf_export_button" src="${dxfIcon}" class="button-icon" style="height: 24px" /></a>
+				<a href="#" download="potree.json"><img data-i18n="[title]scene.export_potree" name="potree_export_button" src="${potreeIcon}" class="button-icon" style="height: 24px" /></a>
 			`);
 
 			let elDownloadJSON = elExport.find("img[name=geojson_export_button]").parent();
@@ -321,7 +321,7 @@ export class Sidebar{
 					let url = window.URL.createObjectURL(new Blob([geoJson], {type: 'data:application/octet-stream'}));
 					elDownloadJSON.attr('href', url);
 				}else{
-					this.viewer.postError("no measurements to export");
+					this.viewer.postError(`<span data-i18n=\"scene.export_error">`+i18n.t("scene.export_error")+`</span>`);
 					event.preventDefault();
 				}
 			});
@@ -337,7 +337,7 @@ export class Sidebar{
 					let url = window.URL.createObjectURL(new Blob([dxf], {type: 'data:application/octet-stream'}));
 					elDownloadDXF.attr('href', url);
 				}else{
-					this.viewer.postError("no measurements to export");
+					this.viewer.postError(`<span data-i18n=\"scene.export_error">`+i18n.t("scene.export_error")+`</span>`);
 					event.preventDefault();
 				}
 			});
@@ -396,12 +396,12 @@ export class Sidebar{
 			return nodeID;
 		}
 
-		let pcID = tree.jstree('create_node', "#", { "text": "<b>Point Clouds</b>", "id": "pointclouds"}, "last", false, false);
-		let measurementID = tree.jstree('create_node', "#", { "text": "<b>Measurements</b>", "id": "measurements" }, "last", false, false);
-		let annotationsID = tree.jstree('create_node', "#", { "text": "<b>Annotations</b>", "id": "annotations" }, "last", false, false);
-		let otherID = tree.jstree('create_node', "#", { "text": "<b>Other</b>", "id": "other" }, "last", false, false);
-		let vectorsID = tree.jstree('create_node', "#", { "text": "<b>Vectors</b>", "id": "vectors" }, "last", false, false);
-		let imagesID = tree.jstree('create_node', "#", { "text": "<b> Images</b>", "id": "images" }, "last", false, false);
+		let pcID = tree.jstree('create_node', "#", { "text": "<b><span data-i18n=\"scene.pointclouds\"></span></b>", "id": "pointclouds"}, "last", false, false);
+		let measurementID = tree.jstree('create_node', "#", { "text": "<b><span data-i18n=\"scene.measurements\"></span></b>", "id": "measurements" }, "last", false, false);
+		let annotationsID = tree.jstree('create_node', "#", { "text": "<b><span data-i18n=\"scene.annotations\"></span></b>", "id": "annotations" }, "last", false, false);
+		let otherID = tree.jstree('create_node', "#", { "text": "<b><span data-i18n=\"scene.other\"></span></b>", "id": "other" }, "last", false, false);
+		let vectorsID = tree.jstree('create_node', "#", { "text": "<b><span data-i18n=\"scene.vectors\"></span></b>", "id": "vectors" }, "last", false, false);
+		let imagesID = tree.jstree('create_node', "#", { "text": "<b><span data-i18n=\"scene.images\"></span></b>", "id": "images" }, "last", false, false);
 
 		tree.jstree("check_node", pcID);
 		tree.jstree("check_node", measurementID);
@@ -412,6 +412,7 @@ export class Sidebar{
 
 		tree.on('create_node.jstree', (e, data) => {
 			tree.jstree("open_all");
+			$("#menu_scene").i18n();					 
 		});
 
 		tree.on("select_node.jstree", (e, data) => {
@@ -547,6 +548,7 @@ export class Sidebar{
 			let pointcloud = e.pointcloud;
 			let cloudIcon = `${Potree.resourcePath}/icons/cloud.svg`;
 			let node = createNode(pcID, pointcloud.name, cloudIcon, pointcloud);
+			tree.i18n();	  
 
 			pointcloud.addEventListener("visibility_changed", () => {
 				if(pointcloud.visible){
@@ -561,12 +563,14 @@ export class Sidebar{
 			let measurement = e.measurement;
 			let icon = Utils.getMeasurementIcon(measurement);
 			createNode(measurementID, measurement.name, icon, measurement);
+			tree.i18n();	  
 		};
 
 		let onVolumeAdded = (e) => {
 			let volume = e.volume;
 			let icon = Utils.getMeasurementIcon(volume);
 			let node = createNode(measurementID, volume.name, icon, volume);
+			tree.i18n();	  
 
 			volume.addEventListener("visibility_changed", () => {
 				if(volume.visible){
@@ -581,6 +585,7 @@ export class Sidebar{
 			let profile = e.profile;
 			let icon = Utils.getMeasurementIcon(profile);
 			createNode(measurementID, profile.name, icon, profile);
+			tree.i18n();	  
 		};
 
 		let onAnnotationAdded = (e) => {
@@ -597,13 +602,15 @@ export class Sidebar{
 				
 				$.jstree.reference(jsonNode.id).rename_node(jsonNode.id, annotation.title);
 			});
+			tree.i18n();  
 		};
 
 		let onCameraAnimationAdded = (e) => {
 			const animation = e.animation;
 
 			const animationIcon = `${Potree.resourcePath}/icons/camera_animation.svg`;
-			createNode(otherID, "animation", animationIcon, animation);
+			createNode(otherID, animation.name, animationIcon, animation);
+			tree.i18n();   
 		};
 
 		let onOrientedImagesAdded = (e) => {
@@ -619,6 +626,7 @@ export class Sidebar{
 					tree.jstree('uncheck_node', node);
 				}
 			});
+			tree.i18n();  
 		};
 
 		const onGeopackageAdded = (e) => {
@@ -640,7 +648,7 @@ export class Sidebar{
 					"last", false, false);
 				tree.jstree(layer.visible ? "check_node" : "uncheck_node", shpPointsID);
 			}
-
+			tree.i18n();
 		};
 
 		this.viewer.scene.addEventListener("pointcloud_added", onPointCloudAdded);
@@ -658,6 +666,7 @@ export class Sidebar{
 			let jsonNode = measurementsRoot.children.find(child => child.data.uuid === e.measurement.uuid);
 			
 			tree.jstree("delete_node", jsonNode.id);
+			tree.i18n();		  
 		};
 
 		let onVolumeRemoved = (e) => {
@@ -665,6 +674,7 @@ export class Sidebar{
 			let jsonNode = measurementsRoot.children.find(child => child.data.uuid === e.volume.uuid);
 			
 			tree.jstree("delete_node", jsonNode.id);
+			tree.i18n();		  
 		};
 
 		let onPolygonClipVolumeRemoved = (e) => {
@@ -672,6 +682,7 @@ export class Sidebar{
 			let jsonNode = measurementsRoot.children.find(child => child.data.uuid === e.volume.uuid);
 			
 			tree.jstree("delete_node", jsonNode.id);
+			tree.i18n();		  
 		};
 
 		let onProfileRemoved = (e) => {
@@ -679,6 +690,7 @@ export class Sidebar{
 			let jsonNode = measurementsRoot.children.find(child => child.data.uuid === e.profile.uuid);
 			
 			tree.jstree("delete_node", jsonNode.id);
+			tree.i18n();	   
 		};
 
 		this.viewer.scene.addEventListener("measurement_removed", onMeasurementRemoved);
@@ -727,7 +739,7 @@ export class Sidebar{
 		}
 
 		{
-			createNode(otherID, "Camera", null, new THREE.Camera());
+			createNode(otherID, `<span data-i18n="scene.object_camera">`+i18n.t("scene.object_camera")+`</span>`, null, new THREE.Camera());
 		}
 
 		this.viewer.addEventListener("scene_changed", (e) => {
@@ -748,6 +760,10 @@ export class Sidebar{
 			e.scene.addEventListener("measurement_removed", onMeasurementRemoved);
 		});
 
+		let onLanguageChanged = (e) => {
+			propertiesPanel.refresh();
+		}
+		this.viewer.addEventListener("language_changed", onLanguageChanged);
 	}
 
 	initClippingTool(){
@@ -763,7 +779,7 @@ export class Sidebar{
 
 		{
 			let elClipTask = $("#cliptask_options");
-			elClipTask.selectgroup({title: "Clip Task"});
+			elClipTask.selectgroup();
 
 			elClipTask.find("input").click( (e) => {
 				this.viewer.setClipTask(ClipTask[e.target.value]);
@@ -776,7 +792,7 @@ export class Sidebar{
 
 		{
 			let elClipMethod = $("#clipmethod_options");
-			elClipMethod.selectgroup({title: "Clip Method"});
+			elClipMethod.selectgroup();
 
 			elClipMethod.find("input").click( (e) => {
 				this.viewer.setClipMethod(ClipMethod[e.target.value]);
@@ -825,8 +841,7 @@ export class Sidebar{
 				"[title]tt.screen_clip_box",
 				() => {
 					if(!(this.viewer.scene.getActiveCamera() instanceof THREE.OrthographicCamera)){
-						this.viewer.postMessage(`Switch to Orthographic Camera Mode before using the Screen-Box-Select tool.`, 
-							{duration: 2000});
+						this.viewer.postMessage(`<span data-i18n=\"tt.screen_clip_msg">`+i18n.t("tt.screen_clip_msg")+`</span>`, {duration: 2000});
 						return;
 					}
 					
@@ -843,7 +858,7 @@ export class Sidebar{
 		{ // REMOVE CLIPPING TOOLS
 			clippingToolBar.append(this.createToolIcon(
 				Potree.resourcePath + "/icons/remove.svg",
-				"[title]tt.remove_all_measurement",
+				"[title]tt.remove_all_clipping_volumes",
 				() => {
 
 					this.viewer.scene.removeAllClipVolumes();
@@ -880,7 +895,7 @@ export class Sidebar{
 			let onReturnNumberChanged = (event) => {
 				let [from, to] = this.viewer.filterReturnNumberRange;
 
-				lblReturnNumber[0].innerHTML = `${from} to ${to}`;
+				lblReturnNumber[0].innerHTML = `[${from}, ${to}]`;
 				sldReturnNumber.slider({values: [from, to]});
 			};
 
@@ -905,7 +920,7 @@ export class Sidebar{
 			let onNumberOfReturnsChanged = (event) => {
 				let [from, to] = this.viewer.filterNumberOfReturnsRange;
 
-				lblNumberOfReturns[0].innerHTML = `${from} to ${to}`;
+				lblNumberOfReturns[0].innerHTML = `[${from}, ${to}]`;
 				sldNumberOfReturns.slider({values: [from, to]});
 			};
 
@@ -1070,7 +1085,7 @@ export class Sidebar{
 				<li>
 					<label style="whitespace: nowrap; display: flex">
 						<input id="${inputID}" type="checkbox" ${checked}/>
-						<span style="flex-grow: 1">${name}</span>
+						&nbsp;<span style="flex-grow: 1; margin-top: 8px;" data-i18n="filters.${name}"></span>
 						<input id="${colorPickerID}" style="zoom: 0.5" />
 					</label>
 				</li>
@@ -1114,7 +1129,7 @@ export class Sidebar{
 				<li>
 					<label style="whitespace: nowrap">
 						<input id="toggleClassificationFilters" type="checkbox" checked/>
-						<span>show/hide all</span>
+						<span data-i18n="filters.classification_show">: `+i18n.t("filters.classification_show")+`</span>
 					</label>
 				</li>
 			`);
@@ -1131,7 +1146,7 @@ export class Sidebar{
 		const addInvertButton = () => { 
 			const element = $(`
 				<li>
-					<input type="button" value="invert" />
+					<input type="button" data-i18n="[value]filters.button_invert" />
 				</li>
 			`);
 
@@ -1243,9 +1258,7 @@ export class Sidebar{
 
 	initAppearance(){
 
-		const sldPointBudget = this.dom.find('#sldPointBudget');
-
-		sldPointBudget.slider({
+		$('#sldPointBudget').slider({
 			value: this.viewer.getPointBudget(),
 			min: 100 * 1000,
 			max: 10 * 1000 * 1000,
@@ -1253,7 +1266,7 @@ export class Sidebar{
 			slide: (event, ui) => { this.viewer.setPointBudget(ui.value); }
 		});
 
-		this.dom.find('#sldFOV').slider({
+		$('#sldFOV').slider({
 			value: this.viewer.getFOV(),
 			min: 20,
 			max: 100,
@@ -1287,7 +1300,7 @@ export class Sidebar{
 
 		this.viewer.addEventListener('point_budget_changed', (event) => {
 			$('#lblPointBudget')[0].innerHTML = Utils.addCommas(this.viewer.getPointBudget());
-			sldPointBudget.slider({value: this.viewer.getPointBudget()});
+			$('#sldPointBudget').slider({value: this.viewer.getPointBudget()});
 		});
 
 		this.viewer.addEventListener('fov_changed', (event) => {
@@ -1381,7 +1394,7 @@ export class Sidebar{
 
 		elNavigation.append(this.createToolIcon(
 			Potree.resourcePath + "/images/compas.svg",
-			"Compass",
+			"[title]tt.compas_control",
 			() => {
 				const visible = !this.viewer.compass.isVisible();
 				this.viewer.compass.setVisible(visible);
@@ -1390,10 +1403,9 @@ export class Sidebar{
 
 		elNavigation.append(this.createToolIcon(
 			Potree.resourcePath + "/icons/camera_animation.svg",
-			"Camera Animation",
+			"[title]tt.camera_animation_control",
 			() => {
 				const animation = CameraAnimation.defaultFromView(this.viewer);
-
 				viewer.scene.addCameraAnimation(animation);
 			}
 		));
@@ -1438,18 +1450,8 @@ export class Sidebar{
 			() => {this.viewer.setBottomView()}
 		));
 
-
-
-
-
-		let elCameraProjection = $(`
-			<selectgroup id="camera_projection_options">
-				<option id="camera_projection_options_perspective" value="PERSPECTIVE">Perspective</option>
-				<option id="camera_projection_options_orthigraphic" value="ORTHOGRAPHIC">Orthographic</option>
-			</selectgroup>
-		`);
-		elNavigation.append(elCameraProjection);
-		elCameraProjection.selectgroup({title: "Camera Projection"});
+		let elCameraProjection = $("#camera_projection_options");
+		elCameraProjection.selectgroup();
 		elCameraProjection.find("input").click( (e) => {
 			this.viewer.setCameraMode(CameraMode[e.target.value]);
 		});
@@ -1504,8 +1506,7 @@ export class Sidebar{
 
 		{
 			let elSplatQuality = $("#splat_quality_options");
-			elSplatQuality.selectgroup({title: "Splat Quality"});
-
+			elSplatQuality.selectgroup();
 			elSplatQuality.find("input").click( (e) => {
 				if(e.target.value === "standard"){
 					this.viewer.useHQ = false;

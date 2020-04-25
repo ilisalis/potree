@@ -1203,6 +1203,7 @@ export class Viewer extends EventDispatcher{
 	setLanguage (lang) {
 		i18n.setLng(lang);
 		$('body').i18n();
+		this.dispatchEvent({'type': 'language_changed', 'viewer': this});														   
 	}
 
 	setServer (server) {
