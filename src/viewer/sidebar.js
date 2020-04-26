@@ -548,7 +548,7 @@ export class Sidebar{
 			let pointcloud = e.pointcloud;
 			let cloudIcon = `${Potree.resourcePath}/icons/cloud.svg`;
 			let node = createNode(pcID, pointcloud.name, cloudIcon, pointcloud);
-			tree.i18n();	  
+			tree.i18n();
 
 			pointcloud.addEventListener("visibility_changed", () => {
 				if(pointcloud.visible){
@@ -593,6 +593,9 @@ export class Sidebar{
 
 			let annotationIcon = `${Potree.resourcePath}/icons/annotation.svg`;
 			let parentID = this.annotationMapping.get(annotation.parent);
+			if(parentID == undefined)
+				parentID = annotationsID;
+			
 			let annotationID = createNode(parentID, annotation.title, annotationIcon, annotation);
 			this.annotationMapping.set(annotation, annotationID);
 
@@ -629,7 +632,7 @@ export class Sidebar{
 			tree.i18n();  
 		};
 
-		const onGeopackageAdded = (e) => {
+		let onGeopackageAdded = (e) => {
 			const geopackage = e.geopackage;
 
 			const geopackageIcon = `${Potree.resourcePath}/icons/triangle.svg`;
@@ -650,6 +653,13 @@ export class Sidebar{
 			}
 			tree.i18n();
 		};
+		
+		let onOtherAdded = (e) => {
+			let object = e.object;
+			let icon = `${Potree.resourcePath}/icons/triangle.svg`;
+			createNode(otherID, object.name, icon, object);
+			tree.i18n();
+		};
 
 		this.viewer.scene.addEventListener("pointcloud_added", onPointCloudAdded);
 		this.viewer.scene.addEventListener("measurement_added", onMeasurementAdded);
@@ -659,14 +669,23 @@ export class Sidebar{
 		this.viewer.scene.addEventListener("oriented_images_added", onOrientedImagesAdded);
 		this.viewer.scene.addEventListener("geopackage_added", onGeopackageAdded);
 		this.viewer.scene.addEventListener("polygon_clip_volume_added", onVolumeAdded);
+		this.viewer.scene.addEventListener("other_added", onOtherAdded);
 		this.viewer.scene.annotations.addEventListener("annotation_added", onAnnotationAdded);
 
+		let onPointCloudRemoved = (e) => {
+			let pointcloudsRoot = $("#jstree_scene").jstree().get_json("pointclouds");
+			let jsonNode = pointcloudsRoot.children.find(child => child.data.uuid === e.pointcloud.uuid);
+			
+			tree.jstree("delete_node", jsonNode.id);
+			tree.i18n();
+		};
+		
 		let onMeasurementRemoved = (e) => {
 			let measurementsRoot = $("#jstree_scene").jstree().get_json("measurements");
 			let jsonNode = measurementsRoot.children.find(child => child.data.uuid === e.measurement.uuid);
 			
 			tree.jstree("delete_node", jsonNode.id);
-			tree.i18n();		  
+			tree.i18n();
 		};
 
 		let onVolumeRemoved = (e) => {
@@ -674,15 +693,7 @@ export class Sidebar{
 			let jsonNode = measurementsRoot.children.find(child => child.data.uuid === e.volume.uuid);
 			
 			tree.jstree("delete_node", jsonNode.id);
-			tree.i18n();		  
-		};
-
-		let onPolygonClipVolumeRemoved = (e) => {
-			let measurementsRoot = $("#jstree_scene").jstree().get_json("measurements");
-			let jsonNode = measurementsRoot.children.find(child => child.data.uuid === e.volume.uuid);
-			
-			tree.jstree("delete_node", jsonNode.id);
-			tree.i18n();		  
+			tree.i18n();
 		};
 
 		let onProfileRemoved = (e) => {
@@ -690,14 +701,60 @@ export class Sidebar{
 			let jsonNode = measurementsRoot.children.find(child => child.data.uuid === e.profile.uuid);
 			
 			tree.jstree("delete_node", jsonNode.id);
-			tree.i18n();	   
+			tree.i18n();
+		};
+		
+		let onAnnotationRemoved = (e) => {
+			tree.jstree("delete_node", this.annotationMapping.get(e.annotation));
+			this.annotationMapping.delete(e.annotation);
+			tree.i18n();
+		};
+		
+		let onCameraAnimationRemoved = (e) => {
+			let otherRoot = $("#jstree_scene").jstree().get_json("other");
+			let jsonNode = otherRoot.children.find(child => child.data.uuid === e.animation.uuid);
+			
+			tree.jstree("delete_node", jsonNode.id);
+			tree.i18n();
+		};
+		
+		let onOrientedImagesRemoved = (e) => {
+			let imagesRoot = $("#jstree_scene").jstree().get_json("images");
+			let jsonNode = imagesRoot.children.find(child => child.data.uuid === e.images.uuid);
+			
+			tree.jstree("delete_node", jsonNode.id);
+			tree.i18n();
+		};
+		
+		let onGeopackageRemoved = (e) => {
+			let vectorsRoot = $("#jstree_scene").jstree().get_json("vectors");
+			
+			for(const layer of e.geopackage.node.children){
+				let jsonNode = vectorsRoot.children.find(child => child.data.uuid === layer.uuid);
+				tree.jstree("delete_node", jsonNode.id);
+			}
+			tree.i18n();
+		};
+		
+		let onOtherRemoved = (e) => {
+			let otherRoot = $("#jstree_scene").jstree().get_json("other");			
+			let jsonNode = otherRoot.children.find(child => child.data.uuid === e.object.uuid);
+			
+			tree.jstree("delete_node", jsonNode.id);
+			tree.i18n();
 		};
 
+		this.viewer.scene.addEventListener("pointcloud_removed", onPointCloudRemoved);
 		this.viewer.scene.addEventListener("measurement_removed", onMeasurementRemoved);
 		this.viewer.scene.addEventListener("volume_removed", onVolumeRemoved);
-		this.viewer.scene.addEventListener("polygon_clip_volume_removed", onPolygonClipVolumeRemoved);
+		this.viewer.scene.addEventListener("polygon_clip_volume_removed", onVolumeRemoved);
 		this.viewer.scene.addEventListener("profile_removed", onProfileRemoved);
-
+		this.viewer.scene.addEventListener("camera_animation_removed", onCameraAnimationRemoved);
+		this.viewer.scene.addEventListener("oriented_images_removed", onOrientedImagesRemoved);
+		this.viewer.scene.addEventListener("geopackage_removed", onGeopackageRemoved);
+		this.viewer.scene.addEventListener("other_removed", onOtherRemoved);
+		this.viewer.scene.annotations.addEventListener("annotation_removed", onAnnotationRemoved);
+		
 		{
 			let annotationIcon = `${Potree.resourcePath}/icons/annotation.svg`;
 			this.annotationMapping = new Map(); 
@@ -708,7 +765,11 @@ export class Sidebar{
 				this.annotationMapping.set(annotation, annotationID);
 			});
 		}
-
+		
+		{
+			createNode(otherID, `<span data-i18n="scene.object_camera">`+i18n.t("scene.object_camera")+`</span>`, null, new THREE.Camera());
+		}
+		
 		const scene = this.viewer.scene;
 		for(let pointcloud of scene.pointclouds){
 			onPointCloudAdded({pointcloud: pointcloud});
@@ -737,31 +798,60 @@ export class Sidebar{
 		for(let profile of scene.profiles){
 			onProfileAdded({profile: profile});
 		}
-
-		{
-			createNode(otherID, `<span data-i18n="scene.object_camera">`+i18n.t("scene.object_camera")+`</span>`, null, new THREE.Camera());
+		
+		for(let other of scene.others){
+			onOtherAdded({object: other});
 		}
 
 		this.viewer.addEventListener("scene_changed", (e) => {
 			propertiesPanel.setScene(e.scene);
 
 			e.oldScene.removeEventListener("pointcloud_added", onPointCloudAdded);
+			e.oldScene.removeEventListener("pointcloud_removed", onPointCloudRemoved);
 			e.oldScene.removeEventListener("measurement_added", onMeasurementAdded);
-			e.oldScene.removeEventListener("profile_added", onProfileAdded);
-			e.oldScene.removeEventListener("volume_added", onVolumeAdded);
-			e.oldScene.removeEventListener("polygon_clip_volume_added", onVolumeAdded);
 			e.oldScene.removeEventListener("measurement_removed", onMeasurementRemoved);
-
+			e.oldScene.removeEventListener("profile_added", onProfileAdded);
+			e.oldScene.removeEventListener("profile_removed", onProfileRemoved);
+			e.oldScene.removeEventListener("volume_added", onVolumeAdded);
+			e.oldScene.removeEventListener("volume_removed", onVolumeRemoved);
+			e.oldScene.removeEventListener("polygon_clip_volume_added", onVolumeAdded);
+			e.oldScene.removeEventListener("polygon_clip_volume_removed", onVolumeRemoved);
+			e.oldScene.removeEventListener("camera_animation_added", onCameraAnimationAdded);
+			e.oldScene.removeEventListener("camera_animation_removed", onCameraAnimationRemoved);			
+			e.oldScene.removeEventListener("oriented_images_added", onOrientedImagesAdded);
+			e.oldScene.removeEventListener("oriented_images_removed", onOrientedImagesRemoved);
+			e.oldScene.removeEventListener("geopackage_added", onGeopackageAdded);
+			e.oldScene.removeEventListener("geopackage_removed", onGeopackageRemoved);			
+			e.oldScene.removeEventListener("other_added", onOtherAdded);
+			e.oldScene.removeEventListener("other_removed", onOtherRemoved);
+			e.oldScene.annotations.removeEventListener("annotation_removed", onAnnotationRemoved);
+			e.oldScene.annotations.removeEventListener("annotation_added", onAnnotationAdded);
+			
 			e.scene.addEventListener("pointcloud_added", onPointCloudAdded);
+			e.scene.addEventListener("pointcloud_removed", onPointCloudRemoved);
 			e.scene.addEventListener("measurement_added", onMeasurementAdded);
-			e.scene.addEventListener("profile_added", onProfileAdded);
-			e.scene.addEventListener("volume_added", onVolumeAdded);
-			e.scene.addEventListener("polygon_clip_volume_added", onVolumeAdded);
 			e.scene.addEventListener("measurement_removed", onMeasurementRemoved);
+			e.scene.addEventListener("profile_added", onProfileAdded);
+			e.scene.addEventListener("profile_removed", onProfileRemoved);			
+			e.scene.addEventListener("volume_added", onVolumeAdded);
+			e.scene.addEventListener("volume_removed", onVolumeRemoved);
+			e.scene.addEventListener("polygon_clip_volume_added", onVolumeAdded);
+			e.scene.addEventListener("polygon_clip_volume_removed", onVolumeRemoved);
+			e.scene.addEventListener("camera_animation_added", onCameraAnimationAdded);
+			e.scene.addEventListener("camera_animation_removed", onCameraAnimationRemoved);			
+			e.scene.addEventListener("oriented_images_added", onOrientedImagesAdded);
+			e.scene.addEventListener("oriented_images_removed", onOrientedImagesRemoved);
+			e.scene.addEventListener("geopackage_added", onGeopackageAdded);
+			e.scene.addEventListener("geopackage_removed", onGeopackageRemoved);
+			e.scene.addEventListener("other_added", onOtherAdded);
+			e.scene.addEventListener("other_removed", onOtherRemoved);
+			e.scene.annotations.addEventListener("annotation_removed", onAnnotationRemoved);
+			e.scene.annotations.addEventListener("annotation_added", onAnnotationAdded);
 		});
 
 		let onLanguageChanged = (e) => {
 			propertiesPanel.refresh();
+			tree.i18n();
 		}
 		this.viewer.addEventListener("language_changed", onLanguageChanged);
 	}

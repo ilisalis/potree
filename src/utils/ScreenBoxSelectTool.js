@@ -20,7 +20,7 @@ export class ScreenBoxSelectTool extends EventDispatcher{
 	}
 
 	onSceneChange(scene){
-		console.log("scene changed");
+		//console.log("scene changed");
 	}
 
 	startInsertion(){
