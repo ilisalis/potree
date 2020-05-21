@@ -352,6 +352,41 @@ export class Sidebar{
 				elDownloadPotree.attr('href', url);
 			});
 		}
+		
+		{
+			let elImport = elScene.next().find("#scene_import");
+
+			let potreeIcon = `${Potree.resourcePath}/icons/file_potree.svg`;
+			
+			elImport.append(`
+				<span data-i18n=\"scene.import"></span>:  <br>
+				<img name="potree_import_button" data-i18n="[title]scene.import_select" src="${potreeIcon}" 
+				class="button-icon" style="height: 24px" />
+				<input type="file" id="potree_import_file" name="files[]" accept=".json" multiple style="display:none;"/>
+			`);
+			
+			let elUploadPotreeFiles = $('#potree_import_file')[0];
+			let onOpenJSONFile = (e) => {
+				let viewer = this.viewer;
+				let files = e.target.files;
+				
+				for(let file of files) {
+					
+					let reader = new FileReader();
+					reader.onload = function(){
+						let json = JSON.parse(reader.result);
+						if(json.type === "Potree"){
+							Potree.loadProject(viewer, json);
+						}
+					};
+					reader.readAsText(file);
+				}
+			};
+			elUploadPotreeFiles.addEventListener('change', onOpenJSONFile, false);
+			
+			let elUploadPotree = elImport.find("img[name=potree_import_button]").parent();
+			elUploadPotree.click( (event) => { elUploadPotreeFiles.click(); });
+		}
 
 		let propertiesPanel = new PropertiesPanel(elProperties, this.viewer);
 		propertiesPanel.setScene(this.viewer.scene);
@@ -373,7 +408,7 @@ export class Sidebar{
 			},
 			"checkbox" : {
 				"keep_selected_style": true,
-				"three_state": false,
+				"three_state": true,
 				"whole_node": false,
 				"tie_selection": false,
 			},
@@ -533,6 +568,13 @@ export class Sidebar{
 			if(object){
 				object.visible = false;
 			}
+			
+			for (let i = 0; i < data.node.children.length; i += 1) {
+				const node = tree.jstree('get_node', data.node.children[i])
+				if (node.data) {
+					node.data.visible = false;
+				}
+			}
 		});
 
 		tree.on("check_node.jstree", (e, data) => {
@@ -540,6 +582,13 @@ export class Sidebar{
 
 			if(object){
 				object.visible = true;
+			}
+			
+			for (let i = 0; i < data.node.children.length; i += 1) {
+				const node = tree.jstree('get_node', data.node.children[i])
+				if (node.data) {
+					node.data.visible = true;
+				}
 			}
 		});
 
@@ -1574,7 +1623,6 @@ export class Sidebar{
 
 		lblMoveSpeed.html(this.viewer.getMoveSpeed().toFixed(1));
 	}
-
 
 	initSettings(){
 

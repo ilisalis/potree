@@ -94,7 +94,9 @@ function loadMeasurement(viewer, data){
 	measure.showCircle = data.showCircle;
 	measure.showAzimuth = data.showAzimuth;
 	measure.showEdges = data.showEdges;
-	// color
+	
+	measure.color = new THREE.Color(data.color[0], data.color[1], data.color[2]);
+	measure.visible = data.visible;
 
 	for(const point of data.points){
 		const pos = new THREE.Vector3(...point);
@@ -212,87 +214,57 @@ function loadView(viewer, view){
 	viewer.scene.view.lookAt(...view.target);
 }
 
-function loadAnnotationItem(item){
-
-	const annotation = new Annotation({
-		position: item.position,
-		title: item.title,
-		cameraPosition: item.cameraPosition,
-		cameraTarget: item.cameraTarget,
-	});
-
-
-	annotation.description = item.description;
-	annotation.uuid = item.uuid;
-
-	if(item.offset){
-		annotation.offset.set(...item.offset);
-	}
-
-	return annotation;
-}
-
 function loadAnnotations(viewer, data){
 
-	if(!data){
+	if(!data || data.length === 0){
 		return;
 	}
-
-	// const findDuplicate = (item) => {
-
-	// 	let duplicate = null;
-
-	// 	viewer.scene.annotations.traverse( a => {
-	// 		if(a.uuid === item.uuid){
-	// 			duplicate = a;
-	// 		}
-	// 	});
-
-	// 	return duplicate;
-	// };
-
-	// const traverse = (item, parent) => {
-
-	// 	const duplicate = findDuplicate(item);
-	// 	if(duplicate){
-	// 		return;
-	// 	}
-
-	// 	const annotation = loadAnnotationItem(item);
-
-	// 	for(const childItem of item.children){
-	// 		traverse(childItem, annotation);
-	// 	}
-
-	// 	parent.add(annotation);
-
-	// };
-
-	// for(const item of data.items){
-	// 	traverse(item, viewer.scene.annotations);
-	// 	// viewer.scene.annotations.add(annotation);
-	// }
-
-
-
-	const {items, hierarchy} = data;
-
+	
 	const existingAnnotations = [];
 	viewer.scene.annotations.traverseDescendants(annotation => {
 		existingAnnotations.push(annotation);
 	});
-
-	for(const item of items){
-
+	
+	let loadAnnotationItem = (item, annotationParent) => {
 		const duplicate = existingAnnotations.find(ann => ann.uuid === item.uuid);
 		if(duplicate){
-			continue;
+			if(item.children) {
+				for(let child of item.children) {
+					loadAnnotationItem(child, duplicate);
+				}
+			}
+		} else {
+			const annotation = new Annotation({
+				position: item.position,
+				title: item.title,
+			});
+
+			annotation.description = item.description;
+			annotation.uuid = item.uuid;
+			
+			if(item.cameraPosition)
+				annotation.cameraPosition = new THREE.Vector3(...item.cameraPosition);
+		
+			if(item.cameraTarget)
+				annotation.cameraTarget = new THREE.Vector3(...item.cameraTarget);
+
+			if(item.offset)
+				annotation.offset.set(...item.offset);
+			
+			if(item.children) {
+				for(let child of item.children) {
+					loadAnnotationItem(child, annotation);
+				}
+			}
+			
+			existingAnnotations.push(annotation);
+			annotationParent.add(annotation);
 		}
+	};
 
-		const annotation = loadAnnotationItem(item);
-		viewer.scene.annotations.add(annotation);
+	for(const item of data){
+		loadAnnotationItem(item, viewer.scene.annotations);
 	}
-
 }
 
 function loadProfile(viewer, data){
@@ -334,30 +306,44 @@ export async function loadProject(viewer, data){
 		return;
 	}
 
-	loadSettings(viewer, data.settings);
+	if(data.settings){
+		loadSettings(viewer, data.settings);
+	}
 
-	loadView(viewer, data.view);
+	if(data.view){
+		loadView(viewer, data.view);
+	}
 
 	const pointcloudPromises = [];
-	for(const pointcloud of data.pointclouds){
-		const promise = loadPointCloud(viewer, pointcloud);
-		pointcloudPromises.push(promise);
+	if(data.pointclouds){
+		for(const pointcloud of data.pointclouds){
+			const promise = loadPointCloud(viewer, pointcloud);
+			pointcloudPromises.push(promise);
+		}
 	}
 
-	for(const measure of data.measurements){
-		loadMeasurement(viewer, measure);
+	if(data.measurements){
+		for(const measure of data.measurements){
+			loadMeasurement(viewer, measure);
+		}
+	}
+	
+	if(data.volumes){
+		for(const volume of data.volumes){
+			loadVolume(viewer, volume);
+		}
 	}
 
-	for(const volume of data.volumes){
-		loadVolume(viewer, volume);
+	if(data.cameraAnimations){
+		for(const animation of data.cameraAnimations){
+			loadCameraAnimation(viewer, animation);
+		}
 	}
 
-	for(const animation of data.cameraAnimations){
-		loadCameraAnimation(viewer, animation);
-	}
-
-	for(const profile of data.profiles){
-		loadProfile(viewer, profile);
+	if(data.profiles){
+		for(const profile of data.profiles){
+			loadProfile(viewer, profile);
+		}
 	}
 
 	if(data.orientedImages){
@@ -368,7 +354,9 @@ export async function loadProject(viewer, data){
 
 	loadAnnotations(viewer, data.annotations);
 
-	loadClassification(viewer, data.classification);
+	if(data.orientedImages){
+		loadClassification(viewer, data.classification);
+	}
 
 	// need to load at least one point cloud that defines the scene projection,
 	// before we can load stuff in other projections such as geopackages
