@@ -110,7 +110,10 @@
 	"annotations": {
 		"annotation_position": "Position",
 		"annotation_title": "Titre",
-		"annotation_description": "Description",
+		"annotation_description": "Description",		
+		"annotation_save_camera": "Sauvegarder la caméra",
+		"annotation_move" : "Déplacer l'annotation",
+		"annotation_hierarchy" : "Parent de l'annotation",
 		"show3D": "Afficher en 3D",
 		"showMap": "Afficher sur la carte"
 	}, 
@@ -129,6 +132,8 @@
 		"export_dxf": "Exporter au format DXF",
 		"export_potree": "Exporter le projet Potree",
 		"export_error": "Aucune mesure à exporter",
+		"import": "Importer",
+		"import_potree": "Importer un projet Potree",
 		
 		"object_angle": "Angle",
 		"object_point": "Point",

@@ -110,7 +110,10 @@
 	"annotations": {
 		"annotation_position": "Position",
 		"annotation_title": "Title",
-		"annotation_description": "Description",
+		"annotation_description": "Description",		
+		"annotation_save_camera": "Save annotation camera",
+		"annotation_move" : "Move annotation",
+		"annotation_hierarchy" : "Annotation parent",		
 		"show3D": "show in 3D",
 		"showMap": "show on map"
 	}, 
@@ -129,6 +132,8 @@
 		"export_dxf": "Export to DXF",
 		"export_potree": "Export Potree project",
 		"export_error": "No measurements to export",
+		"import": "Import",
+		"import_potree": "Import Potree project",
 		
 		"object_angle": "Angle",
 		"object_point": "Point",
@@ -202,11 +207,11 @@
 		"animation_duration": "Duration",
 		"animation_time": "Time",
 		"animation_create_control_point": "Create keyframe",
-		"animation_msg": "Requires you to define at least two keyframes.",
+		"animation_msg": "Requires you to define at least two keyframes.",		
 		
 		"button_copy": "Copy",
 		"button_edit": "Edit",
-		"button_valid": "Valid",
+		"button_valid": "Save",
 		"button_remove": "Remove",
 		"button_play": "Play",
 		"button_view": "View",

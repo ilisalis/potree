@@ -618,6 +618,7 @@ export class Viewer extends EventDispatcher{
 		this.classifications = classifications;
 
 		this.dispatchEvent({'type': 'classifications_changed', 'viewer': this});
+		$('body').i18n();
 	}
 
 	setClassificationVisibility (key, value) {

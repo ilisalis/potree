@@ -183,6 +183,7 @@ function createSettingsData(viewer){
 		background: viewer.getBackground(),
 		minNodeSize: viewer.getMinNodeSize(),
 		showBoundingBoxes: viewer.getShowBoundingBox(),
+		description: viewer.getDescription(),
 	};
 }
 

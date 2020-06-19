@@ -449,7 +449,6 @@ export class Annotation extends EventDispatcher {
 			annotation.removeAllChildren();
 			annotation.dispose();
 			this.filterChild(annotation);
-			annotation.parent = null;
 			
 			this.dispatchEvent({
 				'type': 'annotation_removed',

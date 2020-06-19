@@ -360,7 +360,7 @@ export class Sidebar{
 			
 			elImport.append(`
 				<span data-i18n=\"scene.import"></span>:  <br>
-				<img name="potree_import_button" data-i18n="[title]scene.import_select" src="${potreeIcon}" 
+				<img name="potree_import_button" data-i18n="[title]scene.import_potree" src="${potreeIcon}" 
 				class="button-icon" style="height: 24px" />
 				<input type="file" id="potree_import_file" name="files[]" accept=".json" multiple style="display:none;"/>
 			`);

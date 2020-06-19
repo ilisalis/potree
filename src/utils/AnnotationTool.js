@@ -19,15 +19,16 @@ export class AnnotationTool extends EventDispatcher{
 	startInsertion (args = {}) {
 		let domElement = this.viewer.renderer.domElement;
 
-		let annotation = new Annotation({
-			position: [589748.270, 231444.540, 753.675],
+		let annotation = (args.annotation !== undefined) ? args.annotation : new Annotation({
+			position: [0.0, 0.0, 0.0],
 			title: "Annotation Title",
 			description: `Annotation Description`
 		});
 		this.dispatchEvent({type: 'start_inserting_annotation', annotation: annotation});
 
-		const annotations = this.viewer.scene.annotations;
-		annotations.add(annotation);
+		const annotations = this.viewer.scene.annotations;		
+		if(args.annotation === undefined)
+			annotations.add(annotation);
 
 		let callbacks = {
 			cancel: null,
@@ -64,8 +65,8 @@ export class AnnotationTool extends EventDispatcher{
 
 			if (I) {
 				this.s.position.copy(I.location);
-
-				annotation.position.copy(I.location);
+				annotation.position.copy(I.location);				
+				this.dispatchEvent({ type: 'annotation_position_changed' });				
 			}
 		};
 

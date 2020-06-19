@@ -207,6 +207,7 @@ function loadSettings(viewer, data){
 	viewer.setBackground(data.background);
 	viewer.setMinNodeSize(data.minNodeSize);
 	viewer.setShowBoundingBox(data.showBoundingBoxes);
+	viewer.setDescription(data.description);
 }
 
 function loadView(viewer, view){

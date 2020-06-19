@@ -752,19 +752,13 @@ export class Measure extends THREE.Object3D {
 			const circleCenter = this.circleCenter;
 
 			const circleOkay = this.points.length === 3;
-
-			circleRadiusLabel.visible = this.showCircle && circleOkay;
-			circleRadiusLine.visible = this.showCircle && circleOkay;
-			circleLine.visible = this.showCircle && circleOkay;
-			circleCenter.visible = this.showCircle && circleOkay;
-
 			if(this.showCircle && circleOkay){
 				const A = this.points[0].position;
 				const B = this.points[1].position;
 				const C = this.points[2].position;
 				
-				const dist = B.distanceTo(C);
-				if(dist > 0.0){
+				const circleNaN = A.equals(B) || A.equals(C) || B.equals(C);
+				if(!circleNaN){
 					const AB = B.clone().sub(A);
 					const AC = C.clone().sub(A);
 					const N = AC.clone().cross(AB).normalize();
@@ -775,10 +769,7 @@ export class Measure extends THREE.Object3D {
 					const scale = radius / 20;
 					circleCenter.position.copy(center);
 					circleCenter.scale.set(scale, scale, scale);
-
-					//circleRadiusLine.geometry.vertices[0].set(0, 0, 0);
-					//circleRadiusLine.geometry.vertices[1].copy(B.clone().sub(center));
-
+					
 					circleRadiusLine.geometry.setPositions( [
 						0, 0, 0,
 						...B.clone().sub(center).toArray()
@@ -797,6 +788,17 @@ export class Measure extends THREE.Object3D {
 					circleRadiusLabel.visible = true;
 					circleRadiusLabel.position.copy(center.clone().add(B).multiplyScalar(0.5));
 					circleRadiusLabel.setText(`${radius.toFixed(3)}`);
+					
+					circleRadiusLabel.visible = true;
+					circleRadiusLine.visible = true;
+					circleLine.visible = true;
+					circleCenter.visible = true;
+				} else {
+					circleRadiusLabel.visible = false;
+					circleRadiusLabel.visible = false;
+					circleRadiusLine.visible = false;
+					circleLine.visible = false;
+					circleCenter.visible = false;
 				}
 			}
 		}
