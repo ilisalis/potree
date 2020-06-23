@@ -10,6 +10,7 @@ export class AnnotationPanel{
 		this._update = () => { this.update(); };
 		
 		this.isEditMode = false;
+		this.isCameraMode = false;
 
 		let copyIconPath = `${Potree.resourcePath}/icons/copy.svg`;
 		let editIconPath = Potree.resourcePath + '/icons/edit.svg';
@@ -151,6 +152,67 @@ export class AnnotationPanel{
 		
 		this.elEdit = this.elContent.find("img[name=edit]");
 		this.elEdit.click( () => {
+			this.isEditMode = true;
+			
+			this.elTitle[0].setAttribute("contenteditable", "true");
+			this.elDescription[0].setAttribute("contenteditable", "true");
+			
+			annotation.setHighlighted(true);
+			annotation.moveHere(this.viewer.scene.getActiveCamera());
+			
+			
+			//Annotation camera modifier
+			this.propertiesPanel.addVolatileListener(viewer, "camera_changed", this._update);
+			
+			let elCameraSave = this.elContent.find("#annotation_save_camera");
+			elCameraSave.append(`
+				<li>
+					<center>
+					<label style="whitespace: nowrap">
+						<input id="save_camera" type="checkbox"/>
+						<span data-i18n="annotations.annotation_save_camera">` + i18n.t("annotations.annotation_save_camera") +`</span>
+					</label>
+					
+					<button id="move_annotation" data-i18n="annotations.annotation_move">` + i18n.t("annotations.annotation_move") +`</button>				
+					</center>
+				</li>
+			`);
+			
+			this.elCheckClip = this.elContent.find('#save_camera');
+			this.isCameraMode = (annotation.cameraPosition !== undefined && annotation.cameraTarget !== undefined);
+			this.elCheckClip[0].checked = this.isCameraMode;
+			
+			this.elCheckClip.click(event => {
+				this.isCameraMode = event.target.checked;
+				
+				if(!this.isEditMode) {
+					annotation.cameraPosition = undefined;
+					annotation.cameraTarget = undefined;
+					
+					this.elContent.find("#annotation_camera_position_x").html("");
+					this.elContent.find("#annotation_camera_position_y").html("");
+					this.elContent.find("#annotation_camera_position_z").html("");
+					
+					this.elContent.find("#annotation_camera_target_x").html("");
+					this.elContent.find("#annotation_camera_target_y").html("");
+					this.elContent.find("#annotation_camera_target_z").html("");
+				}
+				
+				this.update();
+			});
+			
+			
+			
+			//Annotation position modifier
+			this.elContent.find("#move_annotation").click(() => {
+				annotation.setHighlighted(false);
+				this.viewer.disableAnnotations ();
+				this.viewer.annotationTool.startInsertion({annotation: annotation});
+			});
+			
+			
+			
+			//Annotation hierarchy modifier
 			let annotationChildren = annotation.flatten();
 			let annotationList = this.viewer.scene.annotations.flatten().filter(e => annotationChildren.indexOf(e) === -1);
 			
@@ -183,59 +245,11 @@ export class AnnotationPanel{
 			attributeSelection.selectmenu({change: updateHierarchy});
 			
 			
-			annotation.setHighlighted(true);
-			annotation.moveHere(this.viewer.scene.getActiveCamera());
-			
-			this.elTitle[0].setAttribute("contenteditable", "true");
-			this.elDescription[0].setAttribute("contenteditable", "true");
-			this.elTitle.backgroundColor = "red";
-			this.elDescription.backgroundColor = "red";
-			
-			let elCameraSave = this.elContent.find("#annotation_save_camera");
-			elCameraSave.append(`
-				<li>
-					<center>
-					<label style="whitespace: nowrap">
-						<input id="save_camera" type="checkbox"/>
-						<span data-i18n="annotations.annotation_save_camera">` + i18n.t("annotations.annotation_save_camera") +`</span>
-					</label>
-					
-					<button id="move_annotation" data-i18n="annotations.annotation_move">` + i18n.t("annotations.annotation_move") +`</button>				
-					</center>
-				</li>
-			`);
-			
-			this.elCheckClip = this.elContent.find('#save_camera');
-			this.isEditMode = (annotation.cameraPosition !== undefined && annotation.cameraTarget !== undefined);
-			this.elCheckClip[0].checked = this.isEditMode;
-			
-			this.elCheckClip.click(event => {
-				this.isEditMode = event.target.checked;
-				
-				if(!this.isEditMode) {
-					annotation.cameraPosition = undefined;
-					annotation.cameraTarget = undefined;
-					
-					this.elContent.find("#annotation_camera_position_x").html("");
-					this.elContent.find("#annotation_camera_position_y").html("");
-					this.elContent.find("#annotation_camera_position_z").html("");
-					
-					this.elContent.find("#annotation_camera_target_x").html("");
-					this.elContent.find("#annotation_camera_target_y").html("");
-					this.elContent.find("#annotation_camera_target_z").html("");
-				}
-				
-				this.update();
-			});
-			
-			this.elContent.find("#move_annotation").click(() => {
-				annotation.setHighlighted(false);
-				this.viewer.disableAnnotations ();
-				this.viewer.annotationTool.startInsertion({annotation: annotation});
-			});
-		
 			this.elEdit.hide();
-			this.elSave.show();			
+			this.elSave.show();
+			this.elRemove.hide();
+			
+			this.update();
 		});
 		
 		this.elSave = this.elContent.find("img[name=save]");
@@ -244,23 +258,25 @@ export class AnnotationPanel{
 			this.elTitle[0].setAttribute("contenteditable", "false");
 			this.elDescription[0].setAttribute("contenteditable", "false");
 			
-			let elCameraSave = this.elContent.find("#annotation_save_camera");
-			elCameraSave.empty();
+			this.elContent.find("#annotation_save_camera").empty();
+			this.elContent.find('#save_camera').empty();
+			this.elContent.find("#annotation_hierarchy").empty();
 			
 			this.isEditMode = false;
-			
-			this.viewer.enableAnnotations ();
+			this.isCameraMode = false;
 			
 			this.elEdit.show();
 			this.elSave.hide();
+			this.elRemove.show();
+			
+			this.update();
 		});
 		
 		this.elRemove = this.elContent.find("img[name=remove]");
 		this.elRemove.click( () => {
 			this.viewer.scene.removeAnnotation(annotation);
 		});
-
-		this.propertiesPanel.addVolatileListener(viewer, "camera_changed", this._update);
+		
 		this.propertiesPanel.addVolatileListener(this.viewer.annotationTool, "annotation_position_changed", this._update);
 
 		this.update();
@@ -274,7 +290,7 @@ export class AnnotationPanel{
 		elContent.find("#annotation_position_y").html(pos[1]);
 		elContent.find("#annotation_position_z").html(pos[2]);
 		
-		if(!this.isEditMode){
+		if(!this.isCameraMode){
 			if(annotation.cameraPosition !== undefined){
 				let cameraPosition = annotation.cameraPosition.toArray().map(c => Utils.addCommas(c.toFixed(3)));
 				elContent.find("#annotation_camera_position_x").html(cameraPosition[0]);
@@ -304,9 +320,14 @@ export class AnnotationPanel{
 			annotation.cameraPosition = camera.position.clone();
 			annotation.cameraTarget = view.getPivot().clone();
 		}
+		
+		if(!this.isEditMode){
+			elDescription.html(annotation.description);
+		} else {
+			elDescription.text(annotation.description);
+		}
 
-		elTitle.text(annotation.title);
-		elDescription.text(annotation.description);
+		elTitle.text(annotation.title);	
 		
 		elContent.i18n();
 	}

@@ -38,7 +38,7 @@ export class AnnotationTool extends EventDispatcher{
 		let insertionCallback = (e) => {
 			if (e.button === THREE.MOUSE.LEFT) {
 				callbacks.finish();
-			} else if (e.button === THREE.MOUSE.RIGHT) {
+			} else if (e.button === THREE.MOUSE.RIGHT && args.annotation === undefined) {
 				callbacks.cancel();
 			}
 		};
