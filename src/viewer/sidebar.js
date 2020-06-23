@@ -48,6 +48,7 @@ export class Sidebar{
 		this.initNavigation();
 		this.initFilters();
 		this.initClippingTool();
+		this.initUnits();
 		this.initSettings();
 		
 		$('#potree_version_number').html(Potree.version.major + "." + Potree.version.minor + Potree.version.suffix);
@@ -1645,6 +1646,18 @@ export class Sidebar{
 		});
 
 		lblMoveSpeed.html(this.viewer.getMoveSpeed().toFixed(1));
+	}
+
+	initUnits() {
+		
+		let elLengthUnit = $("#lengthunit_options");
+		elLengthUnit.selectgroup();
+
+		elLengthUnit.find("input").click( (e) => {
+			viewer.setLengthUnitAndDisplayUnit(viewer.lengthUnit, e.target.value);
+		});
+
+		elLengthUnit.find(`input[value=${viewer.lengthUnitDisplay.code}]`).trigger("click");
 	}
 
 	initSettings(){

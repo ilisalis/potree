@@ -104,6 +104,12 @@
 		"orthographic_camera_control": "Orthographique",
 		
 		"move_speed": "Vitesse",
+
+		"units": "Unités",
+		"units_meter": "Mètre (m)",
+		"units_centimeter": "Centimètre (cm)",
+		"units_foot": "Pieds (ft)",
+		"units_inch": "Pouces (in)",
 		
 		"back_3d_view": "Vue 3D"
 	},

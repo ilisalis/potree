@@ -105,6 +105,12 @@
 		
 		"move_speed": "Speed",
 		
+		"units": "Length unit",
+		"units_meter": "Meter (m)",
+		"units_centimeter": "Centimeter (cm)",
+		"units_foot": "Foot (ft)",
+		"units_inch": "Inch (in)",
+		
 		"back_3d_view": "Back to 3D view"
 	},
 	"annotations": {

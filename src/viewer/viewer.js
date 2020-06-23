@@ -705,6 +705,9 @@ export class Viewer extends EventDispatcher{
 			case 'm':
 				this.lengthUnit = LengthUnits.METER;
 				break;
+			case 'cm':
+				this.lengthUnitDisplay = LengthUnits.CENTIMETER;
+				break;
 			case 'ft':
 				this.lengthUnit = LengthUnits.FEET;
 				break;
@@ -716,6 +719,9 @@ export class Viewer extends EventDispatcher{
 		switch (lengthUnitDisplayValue) {
 			case 'm':
 				this.lengthUnitDisplay = LengthUnits.METER;
+				break;
+			case 'cm':
+				this.lengthUnitDisplay = LengthUnits.CENTIMETER;
 				break;
 			case 'ft':
 				this.lengthUnitDisplay = LengthUnits.FEET;
