@@ -276,6 +276,7 @@ a:hover, a:visited, a:link, a:active{
 	margin:			5px 0px 0px 0px;
 	border-radius:	4px;
 	display:		none;
+	overflow: auto;
 	max-width:		500px;
 	width:			500px;
 }
