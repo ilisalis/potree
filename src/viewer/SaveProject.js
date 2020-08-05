@@ -1,7 +1,7 @@
 
 
 function createPointcloudData(pointcloud) {
-
+	
 	let material = pointcloud.material;
 
 	let ranges = [];
@@ -10,6 +10,19 @@ function createPointcloudData(pointcloud) {
 		ranges.push({
 			name: name,
 			value: value,
+		});
+	}
+	
+	if(typeof material.elevationRange[0] === "number"){
+		ranges.push({
+			name: "elevationRange",
+			value: material.elevationRange,
+		});
+	}
+	if(typeof material.intensityRange[0] === "number"){
+		ranges.push({
+			name: "intensityRange",
+			value: material.intensityRange,
 		});
 	}
 
@@ -31,6 +44,7 @@ function createPointcloudData(pointcloud) {
 		rotation: pointcloud.rotation.toArray(),
 		scale: pointcloud.scale.toArray(),
 		material: jsonMaterial,
+		visible: pointcloud.visible,
 	};
 
 	return pcdata;
@@ -88,6 +102,7 @@ function createCameraAnimationData(animation){
 }
 
 function createMeasurementData(measurement){
+	
 	const data = {
 		uuid: measurement.uuid,
 		name: measurement.name,

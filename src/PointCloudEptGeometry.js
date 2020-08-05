@@ -49,7 +49,7 @@ export class PointCloudEptGeometry {
 		this.offset = U.toVector3([0, 0, 0]);
 		this.boundingSphere = U.sphereFrom(this.boundingBox);
 		this.tightBoundingSphere = U.sphereFrom(this.tightBoundingBox);
-		this.version = new Potree.Version('1.6');
+		this.version = new Potree.Version('1.7');
 
 		this.projection = null;
 		this.fallbackProjection = null;
@@ -63,6 +63,19 @@ export class PointCloudEptGeometry {
 			else this.fallbackProjection = info.srs.wkt;
 		}
 
+		{ 
+			// TODO [mschuetz]: named projections that proj4 can't handle seem to cause problems.
+			// remove them for now
+
+			try{
+				proj4(this.projection);
+			}catch(e){
+				this.projection = null;
+			}
+
+		
+
+		}
 		
 		{
 			const attributes = new PointAttributes();
@@ -72,6 +85,7 @@ export class PointCloudEptGeometry {
 			attributes.add(new PointAttribute("intensity", PointAttributeTypes.DATA_TYPE_UINT16, 1));
 			attributes.add(new PointAttribute("classification", PointAttributeTypes.DATA_TYPE_UINT8, 1));
 			attributes.add(new PointAttribute("gps-time", PointAttributeTypes.DATA_TYPE_DOUBLE, 1));
+			attributes.add(new PointAttribute("returnNumber", PointAttributeTypes.DATA_TYPE_UINT8, 1));
 			attributes.add(new PointAttribute("number of returns", PointAttributeTypes.DATA_TYPE_UINT8, 1));
 			attributes.add(new PointAttribute("return number", PointAttributeTypes.DATA_TYPE_UINT8, 1));
 			attributes.add(new PointAttribute("source id", PointAttributeTypes.DATA_TYPE_UINT16, 1));

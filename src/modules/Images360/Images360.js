@@ -1,5 +1,6 @@
 
 import { EventDispatcher } from "../../EventDispatcher.js";
+import {TextSprite} from "../../TextSprite.js";
 
 let sg = new THREE.SphereGeometry(1, 8, 8);
 let sgHigh = new THREE.SphereGeometry(1, 128, 128);

@@ -1,8 +1,12 @@
 
-const Features = (function () {
-	let ftCanvas = document.createElement('canvas');
+let ftCanvas = document.createElement('canvas');
+
+export const Features = (function () {
+
 	let gl = ftCanvas.getContext('webgl') || ftCanvas.getContext('experimental-webgl');
-	if (gl === null)		{ return null; }
+	if (gl === null){ 
+		return null; 
+	}
 
 	// -- code taken from THREE.WebGLRenderer --
 	let _vertexShaderPrecisionHighpFloat = gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.HIGH_FLOAT);
@@ -71,6 +75,3 @@ const Features = (function () {
 		precision: precision
 	};
 }());
-
-
-export {Features};

@@ -7,6 +7,8 @@ import {EventDispatcher} from "../EventDispatcher.js";
 export class AnnotationTool extends EventDispatcher{
 	constructor (viewer) {
 		super();
+		
+		this.counter = 0;
 
 		this.viewer = viewer;
 		this.renderer = viewer.renderer;
@@ -21,8 +23,8 @@ export class AnnotationTool extends EventDispatcher{
 
 		let annotation = (args.annotation !== undefined) ? args.annotation : new Annotation({
 			position: [0.0, 0.0, 0.0],
-			title: "Annotation Title",
-			description: `Annotation Description`
+			title: "Annotation " + this.counter++,
+			description: ``
 		});
 		this.dispatchEvent({type: 'start_inserting_annotation', annotation: annotation});
 

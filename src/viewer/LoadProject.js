@@ -18,7 +18,15 @@ function loadPointCloud(viewer, data){
 
 			if(data.material.ranges != null){
 				for(let range of data.material.ranges){
-					target.setRange(range.name, range.value);
+					
+					if(range.name === "elevationRange"){
+						target.elevationRange = range.value;
+					}else if(range.name === "intensityRange"){
+						target.intensityRange = range.value;
+					}else{
+						target.setRange(range.name, range.value);
+					}
+					
 				}
 			}
 
@@ -66,6 +74,7 @@ function loadPointCloud(viewer, data){
 			loadMaterial(pointcloud.material);
 
 			viewer.scene.addPointCloud(pointcloud);
+			pointcloud.visible = data.visible;
 
 			resolve(pointcloud);
 		});
@@ -353,9 +362,11 @@ export async function loadProject(viewer, data){
 		}
 	}
 
-	loadAnnotations(viewer, data.annotations);
+	if(data.annotations){
+		loadAnnotations(viewer, data.annotations);
+	}
 
-	if(data.orientedImages){
+	if(data.classification){
 		loadClassification(viewer, data.classification);
 	}
 

@@ -452,8 +452,13 @@ export class CameraAnimation extends EventDispatcher{
 
 				const x = evt.clientX - rect.x;
 				const y = evt.clientY - rect.y;
+				
+				
 
 				const {width, height} = this.viewer.renderer.getSize(new THREE.Vector2());
+				
+				console.log(x + ", " + y + ", " + evt.clientX + ", " + evt.clientY + ", " + width + ", " + height);
+				
 				const camera = this.viewer.scene.getActiveCamera();
 				//const cp = this.controlPoints.find(cp => cp.handle.svg === svg);
 				const projected = vector.clone().project(camera);
@@ -507,7 +512,7 @@ export class CameraAnimation extends EventDispatcher{
 		const originalyVisible = this.visible;
 		this.setVisible(false);
 
-		this.onUpdate = (delta) => {
+		const onUpdate = (delta) => {
 
 			let tNow = performance.now();
 			let elapsed = (tNow - tStart) / 1000;
@@ -524,12 +529,12 @@ export class CameraAnimation extends EventDispatcher{
 			if(t > 1){
 				this.setVisible(originalyVisible);
 
-				this.viewer.removeEventListener("update", this.onUpdate);
+				this.viewer.removeEventListener("update", onUpdate);
 			}
 
 		};
 
-		this.viewer.addEventListener("update", this.onUpdate);
+		this.viewer.addEventListener("update", onUpdate);
 
 	}
 
