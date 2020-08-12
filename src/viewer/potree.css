@@ -303,7 +303,7 @@ a:hover, a:visited, a:link, a:active{
 
 [contenteditable="true"] {
     background-color: rgb(47,76,84);
-	min-width: 100%;
+	width: 100%;
 }
 
 [contenteditable="false"] {

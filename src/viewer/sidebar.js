@@ -13,7 +13,11 @@ import {ScreenBoxSelectTool} from "../utils/ScreenBoxSelectTool.js"
 import {Utils} from "../utils.js"
 import {CameraAnimation} from "../modules/CameraAnimation/CameraAnimation.js"
 import {HierarchicalSlider} from "./HierarchicalSlider.js"
+import {OrientedImage} from "../modules/OrientedImages/OrientedImages.js";
+import {Images360} from "../modules/Images360/Images360.js";
 
+import JSON5 from "../../libs/json5-2.1.3/json5.mjs";	
+							 
 export class Sidebar{
 
 	constructor(viewer){
@@ -61,7 +65,7 @@ export class Sidebar{
 		// ANGLE
 		let elToolbar = $('#tools');
 		elToolbar.append(this.createToolIcon(
-			Potree.resourcePath + '/icons/angle.png',
+			Potree.resourcePath + '/icons/angle.svg',
 			'[title]tt.angle_measurement',
 			() => {
 				$('#menu_measurements').next().slideDown();
@@ -288,6 +292,31 @@ export class Sidebar{
 			let currentShow = this.measuringTool.showLabels ? "SHOW" : "HIDE";
 			elShow.find(`input[value=${currentShow}]`).trigger("click");
 		}
+		
+		{ // Annotation View Mode
+			let elAnnotationShow = $("#annotation_options_show");
+			elAnnotationShow.selectgroup();
+
+			elAnnotationShow.find("input").click( (e) => {				
+				this.viewer.setHierarchyView(e.target.value);
+			});
+
+			let currentShow = this.viewer.hierarchyView;
+			elAnnotationShow.find(`input[value=${currentShow}]`).trigger("click");
+			
+			this.viewer.addEventListener('hierarchyView_changed', (event) => {
+				let currentShow = this.viewer.hierarchyView;
+				elAnnotationShow.value = currentShow;
+			});
+			
+			$('#annotation_occlusion')[0].checked = !this.viewer.getShowOccludedAnnotation();
+			$('#annotation_occlusion').click(() => {
+				this.viewer.setShowOccludedAnnotation(!$('#annotation_occlusion').prop("checked"));
+			});
+			this.viewer.addEventListener('showOccludedAnnotation_changed', (event) => {
+				$('#annotation_occlusion')[0].checked = !this.viewer.getShowOccludedAnnotation();
+			});
+		}
 	}
 
 	initScene(){
@@ -347,7 +376,7 @@ export class Sidebar{
 			elDownloadPotree.click( (event) => {
 
 				let data = Potree.saveProject(this.viewer);
-				let dataString = JSON.stringify(data, null, "\t")
+				let dataString = JSON5.stringify(data, null, "\t")
 
 				let url = window.URL.createObjectURL(new Blob([dataString], {type: 'data:application/octet-stream'}));
 				elDownloadPotree.attr('href', url);
@@ -375,7 +404,7 @@ export class Sidebar{
 					
 					let reader = new FileReader();
 					reader.onload = function(){
-						let json = JSON.parse(reader.result);
+						let json = JSON5.parse(reader.result);
 						if(json.type === "Potree"){
 							Potree.loadProject(viewer, json);
 						}
@@ -388,7 +417,34 @@ export class Sidebar{
 			let elUploadPotree = elImport.find("img[name=potree_import_button]").parent();
 			elUploadPotree.click( (event) => { elUploadPotreeFiles.click(); });
 		}
+		
+		{
+			let removeIconPath = Potree.resourcePath + '/icons/remove.svg';
+			let elTreeSearch = elScene.next().find("#tree_search");
+			elTreeSearch.append(`
+				<div class="heading"><span data-i18n="scene.search_tree">`+i18n.t("scene.search_tree")+`</span></div>
+				<div style="display: flex;">					
+					<div id="search_keyword" contenteditable="true"></div>
+					<img name="clear" data-i18n="[title]scene.button_clear" class="button-icon" src="${removeIconPath}" style="left: 0px; width: 16px; height: 16px"/>
+				</div>
+				<br>
+			`);
 
+			let elKeyword = elTreeSearch.find("#search_keyword")
+			elKeyword[0].addEventListener("input", () => {
+				let keyword = elKeyword.text();
+				$("#jstree_scene").jstree('search', keyword);
+				$("#jstree_scene").i18n();
+			}, false);	
+
+			let elClear = elTreeSearch.find("img[name=clear]");
+			elClear.click( () => {
+				elKeyword.text("");
+				$("#jstree_scene").jstree('search', '');
+				$("#jstree_scene").i18n();
+			});				
+		}
+		
 		let propertiesPanel = new PropertiesPanel(elProperties, this.viewer);
 		propertiesPanel.setScene(this.viewer.scene);
 		
@@ -398,7 +454,7 @@ export class Sidebar{
 		elObjects.append(tree);
 
 		tree.jstree({
-			'plugins': ["checkbox", "state"],
+			'plugins': ["search", "checkbox", "state"],
 			'core': {
 				"dblclick_toggle": false,
 				"state": {
@@ -406,6 +462,10 @@ export class Sidebar{
 				},
 				'check_callback': true,
 				"expand_selected_onload": true
+			},
+			'search': {
+				'case_insensitive': false,
+				'show_only_matches' : true
 			},
 			"checkbox" : {
 				"keep_selected_style": true,
@@ -653,9 +713,21 @@ export class Sidebar{
 
 			annotation.addEventListener("annotation_changed", (e) => {
 				let annotationsRoot = $("#jstree_scene").jstree().get_json("annotations");
-				let jsonNode = annotationsRoot.children.find(child => child.data.uuid === annotation.uuid);
 				
-				$.jstree.reference(jsonNode.id).rename_node(jsonNode.id, annotation.title);
+				let jsonNode = undefined;
+				let searchNode = (node, annotation) => {
+					let find = node.children.find(child => child.data.uuid === annotation.uuid);
+					if(find !== undefined) {
+						jsonNode = find;
+					} else if(node.children.length > 0) {						
+						node.children.forEach(child => searchNode(child, annotation));
+					}
+				}
+				
+				searchNode(annotationsRoot, annotation);
+				if(jsonNode !== undefined) {
+					$.jstree.reference(jsonNode.id).rename_node(jsonNode.id, annotation.title);
+				}
 			});
 			tree.i18n();  
 		};
@@ -1471,6 +1543,10 @@ export class Sidebar{
 			$('#sldFOV').slider({value: this.viewer.getFOV()});
 		});
 
+		this.viewer.addEventListener('use_edl_changed', (event) => {
+			$('#chkEDLEnabled')[0].checked = this.viewer.getEDLEnabled();
+		});
+		
 		this.viewer.addEventListener('edl_radius_changed', (event) => {
 			$('#lblEDLRadius')[0].innerHTML = this.viewer.getEDLRadius().toFixed(1);
 			$('#sldEDLRadius').slider({value: this.viewer.getEDLRadius()});
@@ -1563,12 +1639,27 @@ export class Sidebar{
 				this.viewer.compass.setVisible(visible);
 			}
 		));
+		
+		elNavigation.append(this.createToolIcon(
+			Potree.resourcePath + "/icons/scalebar.svg",
+			"[title]tt.scalebar_control",
+			() => {
+				if(!(this.viewer.scene.getActiveCamera() instanceof THREE.OrthographicCamera)){
+					this.viewer.postMessage(`<span data-i18n=\"tt.screen_clip_msg">`+i18n.t("tt.screen_clip_msg")+`</span>`, {duration: 2000});
+					return;
+				}
+				
+				const visible = !this.viewer.scalebar.isVisible();
+				this.viewer.scalebar.setVisible(visible);
+			}
+		));
 
 		elNavigation.append(this.createToolIcon(
 			Potree.resourcePath + "/icons/camera_animation.svg",
 			"[title]tt.camera_animation_control",
 			() => {
 				const animation = CameraAnimation.defaultFromView(this.viewer);
+				
 				viewer.scene.addCameraAnimation(animation);
 			}
 		));
@@ -1654,10 +1745,10 @@ export class Sidebar{
 		elLengthUnit.selectgroup();
 
 		elLengthUnit.find("input").click( (e) => {
-			viewer.setLengthUnitAndDisplayUnit(viewer.lengthUnit, e.target.value);
+			this.viewer.setLengthUnitAndDisplayUnit(this.viewer.lengthUnit, e.target.value);
 		});
 
-		elLengthUnit.find(`input[value=${viewer.lengthUnitDisplay.code}]`).trigger("click");
+		elLengthUnit.find(`input[value=${this.viewer.lengthUnitDisplay.code}]`).trigger("click");
 	}
 
 	initSettings(){
@@ -1697,8 +1788,12 @@ export class Sidebar{
 			this.viewer.setShowBoundingBox($('#show_bounding_box').prop("checked"));
 		});
 
+		$('#set_freeze')[0].checked = this.viewer.getFreeze();
 		$('#set_freeze').click(() => {
 			this.viewer.setFreeze($('#set_freeze').prop("checked"));
+		});
+		this.viewer.addEventListener('freeze_changed', (event) => {
+			$('#set_freeze')[0].checked = this.viewer.getFreeze();
 		});
 	}
 

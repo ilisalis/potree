@@ -68,6 +68,12 @@
 		"measurement_show_yes": "Show",
 		"measurement_show_no": "Hide",
 		
+		"annotation_show": "Annotation View Mode",
+		"annotation_show_hierarchy": "Hierarchical",
+		"annotation_show_parent": "Parent",
+		"annotation_show_all": "All",
+		"annotation_show_occlusion": "Hide occluded annotations",
+		
 		"clipping": "Clipping",
 		"cliptask": "Clip Task",
 		"cliptask_none": "None",
@@ -97,6 +103,7 @@
 		"earth_control": "Earth control",
 		"navigation_cube_control": "Navigation cube",		
 		"compas_control": "Compas",
+		"scalebar_control": "Scalebar",
 		"camera_animation_control": "Camera Animation",
 		
 		"camera_projection_options": "Camera projection",
@@ -140,6 +147,8 @@
 		"export_error": "No measurements to export",
 		"import": "Import",
 		"import_potree": "Import Potree project",
+		
+		"search_tree": "Search",
 		
 		"object_angle": "Angle",
 		"object_point": "Point",
@@ -215,6 +224,7 @@
 		"animation_create_control_point": "Create keyframe",
 		"animation_msg": "Requires you to define at least two keyframes.",		
 		
+		"button_clear": "Clear",
 		"button_copy": "Copy",
 		"button_edit": "Edit",
 		"button_valid": "Save",

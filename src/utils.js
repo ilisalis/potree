@@ -526,9 +526,16 @@ export class Utils {
 		};
 
 		let vector = new THREE.Vector3(normalizedMouse.x, normalizedMouse.y, 0.5);
-		let origin = camera.position.clone();
-		vector.unproject(camera);		
+		let origin = new THREE.Vector3(normalizedMouse.x, normalizedMouse.y, 0);
+		vector.unproject(camera);
+		origin.unproject(camera);
 		let direction = new THREE.Vector3().subVectors(vector, origin).normalize();
+		
+		//1.7beta
+		// let vector = new THREE.Vector3(normalizedMouse.x, normalizedMouse.y, 0.5);
+		// let origin = camera.position.clone();
+		// vector.unproject(camera);		
+		// let direction = new THREE.Vector3().subVectors(vector, origin).normalize();
 
 		let ray = new THREE.Ray(origin, direction);
 

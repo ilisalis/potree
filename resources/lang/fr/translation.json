@@ -68,6 +68,12 @@
 		"measurement_show_yes": "Afficher",
 		"measurement_show_no": "Masquer",
 		
+		"annotation_show": "Mode de vue des annotations",
+		"annotation_show_hierarchy": "Hiérarchique",
+		"annotation_show_parent": "Parent",
+		"annotation_show_all": "Tous",
+		"annotation_show_occlusion": "Masquer les annotations cachés",
+		
 		"clipping": "Boîte de sélection",
 		"cliptask": "Rôle de la sélection",
 		"cliptask_none": "Aucun",
@@ -97,6 +103,7 @@
 		"earth_control": "Navigation autour du point sélectionné",
 		"navigation_cube_control": "Cube de navigation",		
 		"compas_control": "Boussole",
+		"scalebar_control": "Echelle",
 		"camera_animation_control": "Animation de la caméra",
 		
 		"camera_projection_options": "Type de projection",
@@ -140,6 +147,8 @@
 		"export_error": "Aucune mesure à exporter",
 		"import": "Importer",
 		"import_potree": "Importer un projet Potree",
+		
+		"search_tree": "Rechercher",
 		
 		"object_angle": "Angle",
 		"object_point": "Point",
@@ -215,6 +224,7 @@
 		"animation_create_control_point": "Insérer un point-clé",
 		"animation_msg": "Nécessite au moins deux points-clés.",
 		
+		"button_clear": "Effacer",
 		"button_copy": "Copier",
 		"button_edit": "Editer",
 		"button_valid": "Valider",

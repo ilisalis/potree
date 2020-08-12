@@ -72,9 +72,6 @@ export class PointCloudEptGeometry {
 			}catch(e){
 				this.projection = null;
 			}
-
-		
-
 		}
 		
 		{

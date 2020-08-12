@@ -7,7 +7,7 @@ import {MeasurePanel} from "./MeasurePanel.js";
 export class VolumePanel extends MeasurePanel{
 	constructor(viewer, measurement, propertiesPanel){
 		super(viewer, measurement, propertiesPanel);
-
+		
 		let copyIconPath = Potree.resourcePath + '/icons/copy.svg';
 		let removeIconPath = Potree.resourcePath + '/icons/remove.svg';
 
@@ -73,16 +73,20 @@ export class VolumePanel extends MeasurePanel{
 						<input id="volume_show" type="checkbox"/>
 						<span>show volume</span>
 					</label>
-				</li>-->
-
-				<li>
+				</li>-->` 
+				
+				+ ((measurement instanceof SphereVolume) ? "" : 
+				
+				`<li>
 					<label style="whitespace: nowrap">
 						<input id="volume_clip" type="checkbox"/>
 						<span data-i18n="scene.measure_make_clip_volume">` + i18n.t("scene.measure_make_clip_volume") +`</span>
 					</label>
-				</li>
-
-				<li style="margin-top: 10px">
+				</li>`)
+				
+				+ 
+				
+				`<li style="margin-top: 10px">
 					<input name="download_volume" type="button" value="prepare download" style="width: 100%" />
 					<div name="download_message"></div>
 				</li>

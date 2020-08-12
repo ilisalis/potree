@@ -895,12 +895,14 @@ void main() {
 	
 
 	#if defined hq_depth_pass
-		float originalDepth = gl_Position.w;
-		float adjustedDepth = originalDepth + 2.0 * vRadius;
-		float adjust = adjustedDepth / originalDepth;
+		if(!uUseOrthographicCamera){
+			float originalDepth = gl_Position.w;
+			float adjustedDepth = originalDepth + 2.0 * vRadius;
+			float adjust = adjustedDepth / originalDepth;
 
-		mvPosition.xyz = mvPosition.xyz * adjust;
-		gl_Position = projectionMatrix * mvPosition;
+			mvPosition.xyz = mvPosition.xyz * adjust;
+			gl_Position = projectionMatrix * mvPosition;
+		}
 	#endif
 
 

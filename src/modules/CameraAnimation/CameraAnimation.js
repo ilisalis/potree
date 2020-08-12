@@ -452,13 +452,8 @@ export class CameraAnimation extends EventDispatcher{
 
 				const x = evt.clientX - rect.x;
 				const y = evt.clientY - rect.y;
-				
-				
 
 				const {width, height} = this.viewer.renderer.getSize(new THREE.Vector2());
-				
-				console.log(x + ", " + y + ", " + evt.clientX + ", " + evt.clientY + ", " + width + ", " + height);
-				
 				const camera = this.viewer.scene.getActiveCamera();
 				//const cp = this.controlPoints.find(cp => cp.handle.svg === svg);
 				const projected = vector.clone().project(camera);

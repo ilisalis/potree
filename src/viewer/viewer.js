@@ -23,6 +23,7 @@ import {VolumeTool} from "../utils/VolumeTool.js";
 import {InputHandler} from "../navigation/InputHandler.js";
 import {NavigationCube} from "./NavigationCube.js";
 import {Compass} from "../utils/Compass.js";
+import {Scalebar} from "../utils/Scalebar.js";
 import {OrbitControls} from "../navigation/OrbitControls.js";
 import {FirstPersonControls} from "../navigation/FirstPersonControls.js";
 import {EarthControls} from "../navigation/EarthControls.js";
@@ -30,6 +31,7 @@ import {DeviceOrientationControls} from "../navigation/DeviceOrientationControls
 import { EventDispatcher } from "../EventDispatcher.js";
 import { ClassificationScheme } from "../materials/ClassificationScheme.js";
 
+import JSON5 from "../../libs/json5-2.1.3/json5.mjs";								 
 
 
 export class Viewer extends EventDispatcher{
@@ -107,6 +109,8 @@ export class Viewer extends EventDispatcher{
 		this.showBoundingBox = false;
 		this.showAnnotations = true;
 		this.freeze = false;
+		this.hierarchyView = "HIERARCHY";
+		this.showOccludedAnnotation = true;
 		this.clipTask = ClipTask.HIGHLIGHT;
 		this.clipMethod = ClipMethod.INSIDE_ANY;
 
@@ -133,6 +137,7 @@ export class Viewer extends EventDispatcher{
 		this.transformationTool = null;
 		this.navigationCube = null;
 		this.compass = null;
+		this.scalebar = null;
 		
 		this.skybox = null;
 		this.clock = new THREE.Clock();
@@ -195,6 +200,7 @@ export class Viewer extends EventDispatcher{
 			this.navigationCube.visible = false;
 
 			this.compass = new Compass(this);
+			this.scalebar = new Scalebar(this);
 			
 			this.createControls();
 
@@ -241,6 +247,8 @@ export class Viewer extends EventDispatcher{
 			this.setPointBudget(1*1000*1000);
 			this.setShowBoundingBox(false);
 			this.setFreeze(false);
+			this.setHierarchyView("HIERARCHY");
+			this.setShowOccludedAnnotation(true);
 			this.setControls(this.orbitControls);
 			this.setBackground('gradient');
 
@@ -466,6 +474,29 @@ export class Viewer extends EventDispatcher{
 
 	getFreeze () {
 		return this.freeze;
+	};
+	
+	setHierarchyView (value) {
+		if (this.hierarchyView !== value) {
+			this.hierarchyView = value;
+			this.dispatchEvent({'type': 'hierarchyView_changed', 'viewer': this});
+		}
+	};
+
+	getHierarchyView () {
+		return this.hierarchyView;
+	};
+	
+	setShowOccludedAnnotation (value) {
+		value = Boolean(value);
+		if (this.showOccludedAnnotation !== value) {
+			this.showOccludedAnnotation = value;
+			this.dispatchEvent({'type': 'showOccludedAnnotation_changed', 'viewer': this});
+		}
+	};
+
+	getShowOccludedAnnotation () {
+		return this.showOccludedAnnotation;
 	};
 
 	getClipTask(){
@@ -944,7 +975,8 @@ export class Viewer extends EventDispatcher{
 
 		const response = await fetch(url);
 	
-		const json = await response.json();
+		const text = await response.text();
+		const json = JSON5.parse(text);
 		// const json = JSON.parse(text);
 
 		if(json.type === "Potree"){
@@ -1255,7 +1287,7 @@ export class Viewer extends EventDispatcher{
 					try{
 
 						const text = await file.text();
-						const json = JSON.parse(text);
+						const json = JSON5.parse(text);
 
 						if(json.type === "Potree"){
 							Potree.loadProject(viewer, json);
@@ -1345,11 +1377,13 @@ export class Viewer extends EventDispatcher{
 		});
 		//this.renderer.domElement.focus();
 
+		// NOTE: If extension errors occur, pass the string into this.renderer.extensions.get(x) before enabling
 		// enable frag_depth extension for the interpolation shader, if available
 		let gl = this.renderer.getContext();
 		gl.getExtension('EXT_frag_depth');
 		gl.getExtension('WEBGL_depth_texture');
-		
+		gl.getExtension('WEBGL_color_buffer_float'); 	// Enable explicitly for more portability, EXT_color_buffer_float is the proper name in WebGL 2		
+
 		//if(gl instanceof WebGLRenderingContext){
 			let extVAO = gl.getExtension('OES_vertex_array_object');
 
@@ -1468,6 +1502,20 @@ export class Viewer extends EventDispatcher{
 				screenPos.x = renderAreaSize.x * (screenPos.x + 1) / 2;
 				screenPos.y = renderAreaSize.y * (1 - (screenPos.y + 1) / 2);
 
+				if(!this.showOccludedAnnotation){
+					let I = Utils.getMousePointCloudIntersection(
+						screenPos, 
+						this.scene.getActiveCamera(), 
+						this, 
+						this.scene.pointclouds,
+						{pickClipped: true});
+					
+					if (I) {
+						if(I.distance < 0.95 * distance) {
+							return false;
+						}
+					}
+				}
 
 				// SCREEN SIZE
 				if(viewer.scene.cameraMode == CameraMode.PERSPECTIVE) {
@@ -1490,11 +1538,11 @@ export class Viewer extends EventDispatcher{
 			}
 			element.css("z-index", parseInt(zIndex));
 
-			if(annotation.children.length > 0){
+			if(annotation.children.length > 0 && viewer.hierarchyView !== "ALL"){
 				let expand = screenSize > annotation.collapseThreshold || annotation.boundingBox.containsPoint(this.scene.getActiveCamera().position);
 				annotation.expand = expand;
-
-				if (!expand) {
+				
+				if (!expand || viewer.hierarchyView === "PARENT") {
 					//annotation.display = (screenPos.z >= -1 && screenPos.z <= 1);
 					let inFrustum = (screenPos.z >= -1 && screenPos.z <= 1);
 					if(inFrustum){
@@ -1778,10 +1826,15 @@ export class Viewer extends EventDispatcher{
 				boxes.push(...profile.boxes);
 			}
 			
-			let clipBoxes = boxes.map( box => {
+			// Needed for .getInverse(), pre-empt a determinant of 0, see #815 / #816
+			let degenerate = (box) => box.matrixWorld.determinant() !== 0;
+			
+			let clipBoxes = boxes.filter(degenerate).map( box => {
 				box.updateMatrixWorld();
+				
 				let boxInverse = new THREE.Matrix4().getInverse(box.matrixWorld);
 				let boxPosition = box.getWorldPosition(new THREE.Vector3());
+				
 				return {box: box, inverse: boxInverse, position: boxPosition};
 			});
 
@@ -1812,6 +1865,7 @@ export class Viewer extends EventDispatcher{
 			this.mapView.update(delta);
 			if(this.mapView.sceneProjection){
 				$( "#potree_map_toggle" ).css("display", "block");
+				
 			}
 		}
 
