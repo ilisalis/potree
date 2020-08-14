@@ -793,3 +793,7 @@ body{
 	padding-top: 0.6em;
 	padding-bottom: 0.1em;
 }
+
+.annotation_overflow {
+  height: 200px !important;
+}

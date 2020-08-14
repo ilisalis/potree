@@ -24,7 +24,9 @@ export class AnnotationTool extends EventDispatcher{
 		let annotation = (args.annotation !== undefined) ? args.annotation : new Annotation({
 			position: [0.0, 0.0, 0.0],
 			title: "Annotation " + this.counter++,
-			description: ``
+			description: ``,
+			cameraPosition: this.viewer.scene.getActiveCamera().position.clone(),
+			cameraTarget: this.viewer.scene.view.getPivot().clone()
 		});
 		this.dispatchEvent({type: 'start_inserting_annotation', annotation: annotation});
 

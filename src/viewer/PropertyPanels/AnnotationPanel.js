@@ -185,7 +185,7 @@ export class AnnotationPanel{
 			this.elCheckClip.click(event => {
 				this.isCameraMode = event.target.checked;
 				
-				if(!this.isEditMode) {
+				if(!this.isCameraMode) {
 					annotation.cameraPosition = undefined;
 					annotation.cameraTarget = undefined;
 					
@@ -232,6 +232,7 @@ export class AnnotationPanel{
 				}
 				attributeSelection.append(elOption);
 			}
+			attributeSelection.selectmenu().selectmenu("menuWidget").addClass("annotation_overflow");
 			
 			let updateHierarchy = (event, ui) => {
 				let selectedValue = attributeSelection.selectmenu().val();
