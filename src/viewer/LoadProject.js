@@ -74,7 +74,7 @@ function loadPointCloud(viewer, data){
 			loadMaterial(pointcloud.material);
 
 			viewer.scene.addPointCloud(pointcloud);
-			pointcloud.visible = data.visible;
+			pointcloud.visible = (data.visible) ? data.visible : true;
 
 			resolve(pointcloud);
 		});
@@ -217,6 +217,11 @@ function loadSettings(viewer, data){
 	viewer.setMinNodeSize(data.minNodeSize);
 	viewer.setShowBoundingBox(data.showBoundingBoxes);
 	viewer.setDescription(data.description);
+	viewer.setShowOccludedAnnotation(data.showOccludedAnnotation);
+	
+	if(data.hierarchyView){
+		viewer.setHierarchyView(data.hierarchyView, false);
+	}	
 }
 
 function loadView(viewer, view){

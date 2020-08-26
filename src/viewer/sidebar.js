@@ -297,16 +297,19 @@ export class Sidebar{
 			let elAnnotationShow = $("#annotation_options_show");
 			elAnnotationShow.selectgroup();
 
-			elAnnotationShow.find("input").click( (e) => {				
-				this.viewer.setHierarchyView(e.target.value);
+			elAnnotationShow.find("input").click( (e) => {
+				if(e.target.value !== this.viewer.hierarchyView){
+					this.viewer.setHierarchyView(e.target.value, true);
+				}
 			});
 
-			let currentShow = this.viewer.hierarchyView;
-			elAnnotationShow.find(`input[value=${currentShow}]`).trigger("click");
+			elAnnotationShow.value = this.viewer.hierarchyView;
+			elAnnotationShow.find(`input[value=${this.viewer.hierarchyView}]`).trigger("click");
 			
 			this.viewer.addEventListener('hierarchyView_changed', (event) => {
-				let currentShow = this.viewer.hierarchyView;
-				elAnnotationShow.value = currentShow;
+				elAnnotationShow.value = event.value;				
+				if(!event.clicked)
+					elAnnotationShow.find(`input[value=${event.value}]`).trigger("click");
 			});
 			
 			$('#annotation_occlusion')[0].checked = !this.viewer.getShowOccludedAnnotation();

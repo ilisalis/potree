@@ -199,6 +199,8 @@ function createSettingsData(viewer){
 		minNodeSize: viewer.getMinNodeSize(),
 		showBoundingBoxes: viewer.getShowBoundingBox(),
 		description: viewer.getDescription(),
+		hierarchyView: viewer.getHierarchyView(),
+		showOccludedAnnotation: viewer.getShowOccludedAnnotation(),
 	};
 }
 

@@ -247,7 +247,6 @@ export class Viewer extends EventDispatcher{
 			this.setPointBudget(1*1000*1000);
 			this.setShowBoundingBox(false);
 			this.setFreeze(false);
-			this.setHierarchyView("HIERARCHY");
 			this.setShowOccludedAnnotation(true);
 			this.setControls(this.orbitControls);
 			this.setBackground('gradient');
@@ -476,10 +475,10 @@ export class Viewer extends EventDispatcher{
 		return this.freeze;
 	};
 	
-	setHierarchyView (value) {
+	setHierarchyView (value, clicked) {
 		if (this.hierarchyView !== value) {
 			this.hierarchyView = value;
-			this.dispatchEvent({'type': 'hierarchyView_changed', 'viewer': this});
+			this.dispatchEvent({'type': 'hierarchyView_changed', 'value': value, 'clicked': clicked});
 		}
 	};
 
