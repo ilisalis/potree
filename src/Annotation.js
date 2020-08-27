@@ -21,6 +21,9 @@ export class Annotation extends EventDispatcher {
 		} else {
 			this.position = new THREE.Vector3(...args.position);
 		}
+		
+		this.spheres = [];
+		this.edges = [];
 
 		this.cameraPosition = (args.cameraPosition instanceof Array)
 			? new THREE.Vector3().fromArray(args.cameraPosition) : args.cameraPosition;
@@ -114,7 +117,7 @@ export class Annotation extends EventDispatcher {
 		//this.display = true;
 
 	}
-
+	
 	installHandles(viewer){
 		if(this.handles !== undefined){
 			return;
@@ -247,7 +250,6 @@ export class Annotation extends EventDispatcher {
 			end = toScreen(end);
 
 			setCoordinates(start, end);
-
 		};
 
 		viewer.addEventListener("update", updateCallback);
@@ -281,10 +283,6 @@ export class Annotation extends EventDispatcher {
 		}
 
 		this._visible = value;
-
-		//this.traverse(node => {
-		//	node.display = value;
-		//});
 
 		this.dispatchEvent({
 			type: 'visibility_changed',
@@ -442,13 +440,19 @@ export class Annotation extends EventDispatcher {
 				}
 			}
 		}
+		return false;
 	}
 	
-	remove (annotation) {
+	remove (annotation, deleted = true) {
 		if (this.hasChild(annotation)) {
-			annotation.removeAllChildren();
+			annotation.removeAllChildren(deleted);
 			annotation.dispose();
 			this.filterChild(annotation);
+			
+			if(deleted === true){
+				annotation.removeMarkers();
+				annotation.parent = null;
+			}
 			
 			this.dispatchEvent({
 				'type': 'annotation_removed',
@@ -457,13 +461,13 @@ export class Annotation extends EventDispatcher {
 		}
 	}
 
-	removeAllChildren() {
+	removeAllChildren(deleted = true) {
 		this.children.forEach((child) => {
 			if (child.children.length > 0) {
-				child.removeAllChildren();
+				child.removeAllChildren(deleted);
 			}
 
-			this.remove(child);
+			this.remove(child, deleted);
 		});
 	}
 
@@ -610,5 +614,70 @@ export class Annotation extends EventDispatcher {
 
 	toString () {
 		return 'Annotation: ' + this._title;
+	}
+	
+	addMarker(point, scene = null) {
+		if (point instanceof THREE.Vector3) {
+			point = {position: point};
+		}else if(point instanceof Array){
+			point = {position: new THREE.Vector3(...point)};
+		}
+		
+		if(this.scene === null && scene === null) {
+			return;
+		} else if(this.scene === null) {
+			this.scene = scene;
+		}
+		
+		let sphereGeometry = new THREE.SphereGeometry(0.4, 10, 10);
+		let sphere = new THREE.Mesh(sphereGeometry, new THREE.MeshBasicMaterial({ color: 0x00ff00, alphaTest:1.0, opacity: 0.0, depthTest: false  }));
+		
+		sphere.position.copy(point.position);
+		this.scene.scene.add(sphere);
+		this.spheres.push(sphere);
+		
+		{ // edges
+			let lineGeometry = new THREE.LineGeometry();
+			lineGeometry.setPositions( [
+					0, 0, 0,
+					0, 0, 0,
+			]);
+
+			let edge = new THREE.Line2(lineGeometry, new THREE.LineMaterial({ color: 0x00ff00, linewidth: 2, depthTest: false }));
+			edge.position.copy(point.position);
+			
+			this.scene.scene.add(edge);
+			this.edges.push(edge);
+		}
+		
+		{ // Event Listeners
+			let drag = (e) => {
+				let I = Utils.getMousePointCloudIntersection(
+					e.drag.end, 
+					e.viewer.scene.getActiveCamera(), 
+					e.viewer, 
+					e.viewer.scene.pointclouds,
+					{pickClipped: true});
+
+				if (I) {
+					sphere.position.copy(I.location);
+				}
+			};
+			let drop = e => { };
+
+			sphere.addEventListener('drag', drag);
+			sphere.addEventListener('drop', drop);
+		}
+	}
+	
+	removeMarkers() {
+		for(let i = this.edges.length - 1 ; i >= 0 ; i--){
+			this.scene.scene.remove(this.edges[i]);
+			this.remove(this.edges[i]);
+		}
+		for(let i = this.spheres.length - 1 ; i >= 0 ; i--){
+			this.scene.scene.remove(this.spheres[i]);
+			this.remove(this.spheres[i]);
+		}	
 	}
 };

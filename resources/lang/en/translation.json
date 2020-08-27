@@ -73,6 +73,7 @@
 		"annotation_show_parent": "Parent",
 		"annotation_show_all": "All",
 		"annotation_show_occlusion": "Hide occluded annotations",
+		"nb_annotation_markers": "Annotation makers",
 		
 		"clipping": "Clipping",
 		"cliptask": "Clip Task",
@@ -126,7 +127,10 @@
 		"annotation_description": "Description",		
 		"annotation_save_camera": "Save annotation camera",
 		"annotation_move" : "Move annotation",
-		"annotation_hierarchy" : "Annotation parent",		
+		"annotation_hierarchy" : "Annotation parent",
+		"markers" : "Markers",
+		"marker_add" : "Add",
+		"marker_remove" : "Remove",
 		"show3D": "show in 3D",
 		"showMap": "show on map"
 	}, 

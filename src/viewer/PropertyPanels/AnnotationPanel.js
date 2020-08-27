@@ -55,6 +55,7 @@ export class AnnotationPanel{
 				</tr>
 			</table>
 			<div id="annotation_save_camera"></div>
+			<div id="annotation_markers"></div>
 
 			<div>
 
@@ -212,6 +213,28 @@ export class AnnotationPanel{
 			
 			
 			
+			//Annotation's markers manipulation
+			let elMarkersManipulate = this.elContent.find("#annotation_markers");
+			elMarkersManipulate.append(`
+				<li>
+					<center>
+					<br><div class="heading"><span data-i18n="annotations.markers">`+i18n.t("annotations.markers")+`</span><div>
+					<button id="add_marker" data-i18n="annotations.add_marker">` + i18n.t("annotations.marker_add") +`</button>				
+					<button id="remove_markers" data-i18n="annotations.remove_marker">` + i18n.t("annotations.marker_remove") +`</button>				
+					</center>
+				</li>
+			`);
+			
+			this.elContent.find("#add_marker").click(() => {
+				let dir = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, 0.0).normalize();
+				annotation.addMarker(annotation.position.clone().addScaledVector(dir, 2.0));
+			});
+			this.elContent.find("#remove_markers").click(() => {
+				annotation.removeMarkers();
+			});
+			
+			
+			
 			//Annotation hierarchy modifier
 			let annotationChildren = annotation.flatten();
 			let annotationList = this.viewer.scene.annotations.flatten().filter(e => annotationChildren.indexOf(e) === -1);
@@ -238,7 +261,7 @@ export class AnnotationPanel{
 				let selectedValue = attributeSelection.selectmenu().val();
 				annotation.parent = annotationList.find(e => e.uuid === selectedValue);
 				
-				this.viewer.scene.removeAnnotation(annotation);
+				this.viewer.scene.annotations.remove(annotation, false);
 				for(let annotationSaved of annotationChildren) {
 					annotationSaved.parent.add(annotationSaved);
 				}
@@ -262,6 +285,7 @@ export class AnnotationPanel{
 			this.elContent.find("#annotation_save_camera").empty();
 			this.elContent.find('#save_camera').empty();
 			this.elContent.find("#annotation_hierarchy").empty();
+			this.elContent.find("#annotation_markers").empty();
 			
 			this.isEditMode = false;
 			this.isCameraMode = false;

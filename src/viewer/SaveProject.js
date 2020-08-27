@@ -148,6 +148,7 @@ function createAnnotationData(annotation){
 		description: annotation.description,
 		position: annotation.position.toArray(),
 		offset: annotation.offset.toArray(),
+		markers: annotation.spheres.map(p => p.position.toArray()),
 		children: [],
 	};
 

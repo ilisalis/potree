@@ -16,6 +16,8 @@ export class AnnotationTool extends EventDispatcher{
 		this.sg = new THREE.SphereGeometry(0.1);
 		this.sm = new THREE.MeshNormalMaterial();
 		this.s = new THREE.Mesh(this.sg, this.sm);
+		
+		viewer.addEventListener("update", this.update.bind(this));
 	}
 
 	startInsertion (args = {}) {
@@ -38,10 +40,17 @@ export class AnnotationTool extends EventDispatcher{
 			cancel: null,
 			finish: null,
 		};
-
+	
+		let annotationMarker = (args.annotationMarker !== undefined) ? args.annotationMarker : 0;
 		let insertionCallback = (e) => {
 			if (e.button === THREE.MOUSE.LEFT) {
-				callbacks.finish();
+				if(annotationMarker > 0){
+					annotationMarker -= 1;
+					annotation.addMarker(annotation.position);
+					this.viewer.inputHandler.startDragging(annotation.spheres[annotation.spheres.length - 1]);
+				} else {
+					callbacks.finish();
+				}
 			} else if (e.button === THREE.MOUSE.RIGHT && args.annotation === undefined) {
 				callbacks.cancel();
 			}
@@ -70,7 +79,7 @@ export class AnnotationTool extends EventDispatcher{
 			if (I) {
 				this.s.position.copy(I.location);
 				annotation.position.copy(I.location);				
-				this.dispatchEvent({ type: 'annotation_position_changed' });				
+				this.dispatchEvent({ type: 'annotation_position_changed' });
 			}
 		};
 
@@ -90,6 +99,41 @@ export class AnnotationTool extends EventDispatcher{
 	}
 	
 	update(){
+		this.viewer.scene.annotations.traverse(annotation => {
+			if(annotation.spheres.length > 0) {	
+				for(let i = 0 ; i < annotation.spheres.length ; i++) {
+					let camera = this.viewer.scene.getActiveCamera();
+					const renderAreaSize = this.renderer.getSize(new THREE.Vector2());
+					let clientWidth = renderAreaSize.width;
+					let clientHeight = renderAreaSize.height;
+					
+					let sphere = annotation.spheres[i];
+					
+					let distance = camera.position.distanceTo(sphere.getWorldPosition(new THREE.Vector3()));
+					let pr = Utils.projectedRadius(1, camera, distance, clientWidth, clientHeight);
+					let scale = (15 / pr);
+					
+					sphere.scale.set(scale, scale, scale);
+					
+					sphere.visible = annotation.display && annotation.visible;
+					
+					let edge = annotation.edges[i];			
+					edge.material.resolution.set(clientWidth, clientHeight);
+					
+					edge.position.copy(sphere.position);				
+					edge.geometry.setPositions([
+						0, 0, 0,
+						...annotation.position.clone().sub(sphere.position).toArray(),
+					]);
+
+					edge.geometry.verticesNeedUpdate = true;
+					edge.geometry.computeBoundingSphere();
+					edge.computeLineDistances();
+					
+					edge.visible = annotation.display && annotation.visible;
+				}
+			}
+		});
 		// let camera = this.viewer.scene.getActiveCamera();
 		// let domElement = this.renderer.domElement;
 		// let measurements = this.viewer.scene.measurements;

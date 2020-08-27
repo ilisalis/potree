@@ -272,6 +272,13 @@ function loadAnnotations(viewer, data){
 				}
 			}
 			
+			if(item.markers) {
+				for(const marker of item.markers){
+					const pos = new THREE.Vector3(...marker);
+					annotation.addMarker(pos, viewer.scene);
+				}
+			}
+			
 			existingAnnotations.push(annotation);
 			annotationParent.add(annotation);
 		}

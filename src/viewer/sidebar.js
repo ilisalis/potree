@@ -61,7 +61,21 @@ export class Sidebar{
 		
 
 	initToolbar(){
+		$('#sldAnnotationMarkers').slider({
+			value: this.viewer.getAnnotationMarker(),
+			min: 0,
+			max: 25,
+			step: 1,
+			slide: (event, ui) => { this.viewer.setAnnotationMarker(ui.value); }
+		});
+		
+		this.viewer.addEventListener('annotation_marker_changed', (event) => {
+			$('#lblAnnotationMarkers')[0].innerHTML = Utils.addCommas(this.viewer.getAnnotationMarker());
+			$('#sldAnnotationMarkers').slider({value: this.viewer.getAnnotationMarker()});
+		});
 
+		$('#lblAnnotationMarkers')[0].innerHTML = Utils.addCommas(this.viewer.getAnnotationMarker());
+		
 		// ANGLE
 		let elToolbar = $('#tools');
 		elToolbar.append(this.createToolIcon(
@@ -261,7 +275,7 @@ export class Sidebar{
 			'[title]tt.annotation_measurement',
 			() => {
 				$('#menu_measurements').next().slideDown(); ;
-				let annotation = this.viewer.annotationTool.startInsertion();
+				let annotation = this.viewer.annotationTool.startInsertion({annotationMarker: this.viewer.getAnnotationMarker()});
 
 				let annotationsRoot = $("#jstree_scene").jstree().get_json("annotations");
 				let jsonNode = annotationsRoot.children.find(child => child.data.uuid === annotation.uuid);

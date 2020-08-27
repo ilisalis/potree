@@ -113,6 +113,7 @@ export class Viewer extends EventDispatcher{
 		this.showOccludedAnnotation = true;
 		this.clipTask = ClipTask.HIGHLIGHT;
 		this.clipMethod = ClipMethod.INSIDE_ANY;
+		this.annotationMarker = 0;
 
 		this.elevationGradientRepeat = ElevationGradientRepeat.CLAMP;
 
@@ -484,6 +485,17 @@ export class Viewer extends EventDispatcher{
 
 	getHierarchyView () {
 		return this.hierarchyView;
+	};
+	
+	setAnnotationMarker (value) {
+		if (this.annotationMarker !== value) {
+			this.annotationMarker = parseInt(value);
+			this.dispatchEvent({'type': 'annotation_marker_changed', 'viewer': this});
+		}
+	};
+
+	getAnnotationMarker () {
+		return this.annotationMarker;
 	};
 	
 	setShowOccludedAnnotation (value) {

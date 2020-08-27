@@ -73,6 +73,7 @@
 		"annotation_show_parent": "Parent",
 		"annotation_show_all": "Tous",
 		"annotation_show_occlusion": "Masquer les annotations cachés",
+		"nb_annotation_markers": "Nombre de balises d'annotation",
 		
 		"clipping": "Boîte de sélection",
 		"cliptask": "Rôle de la sélection",
@@ -127,6 +128,9 @@
 		"annotation_save_camera": "Sauvegarder la caméra",
 		"annotation_move" : "Déplacer l'annotation",
 		"annotation_hierarchy" : "Parent de l'annotation",
+		"markers" : "Balisage",
+		"marker_add" : "Ajouter",
+		"marker_remove" : "Supprimer",
 		"show3D": "Afficher en 3D",
 		"showMap": "Afficher sur la carte"
 	}, 
