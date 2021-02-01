@@ -2,6 +2,7 @@
  * adapted from http://stemkoski.github.io/Three.js/Sprite-Text-Labels.html
  */
 
+import * as THREE from "../libs/three.js/build/three.module.js";
 export class TextSprite extends THREE.Object3D{
 	
 	constructor(text){
@@ -18,7 +19,7 @@ export class TextSprite extends THREE.Object3D{
 		this.texture = texture;
 
 		this.material = spriteMaterial;
-		this.sprite = new THREE.Sprite(spriteMaterial);
+		this.sprite = new THREE.Sprite(this.material);
 		this.add(this.sprite);
 
 		this.borderThickness = 4;

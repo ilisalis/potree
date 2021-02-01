@@ -5,7 +5,7 @@ import {MeasurePanel} from "./MeasurePanel.js";
 export class PointPanel extends MeasurePanel{
 	constructor(viewer, measurement, propertiesPanel){
 		super(viewer, measurement, propertiesPanel);
-
+		
 		let removeIconPath = Potree.resourcePath + '/icons/remove.svg';
 		this.elContent = $(`
 			<div class="measurement_content selectable">
@@ -38,6 +38,15 @@ export class PointPanel extends MeasurePanel{
 		let elCoordiantesContainer = this.elContent.find('.coordinates_table_container');
 		elCoordiantesContainer.empty();
 		elCoordiantesContainer.append(this.createCoordinatesTable(this.measurement.points.map(p => p.position)));
+		
+		proj4.defs("WGS84", "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs");
+		proj4.defs("pointcloud", this.viewer.getProjection());
+		
+		var fromModel = proj4.defs("pointcloud");
+		var toWGS84 = proj4.defs("WGS84");
+		
+		var coordinate = proj4(fromModel, toWGS84, [this.measurement.points[0].position.x, this.measurement.points[0].position.y]);
+		console.log(coordinate);
 
 		let elAttributesContainer = this.elContent.find('.attributes_table_container');
 		elAttributesContainer.empty();

@@ -1,4 +1,6 @@
 
+import * as THREE from "../../../libs/three.js/build/three.module.js";
+import {MOUSE} from "../../defines.js";
 import {EventDispatcher} from "../../EventDispatcher.js";
 
  
@@ -10,7 +12,20 @@ export class OrientedImageControls extends EventDispatcher{
 		this.viewer = viewer;
 		this.renderer = viewer.renderer;
 
+/*this.originalCam = viewer.scene.getActiveCamera();
+		this.shearCam = viewer.scene.getActiveCamera().clone();
+		let rotation = this.originalCam.rotation.toArray();
+		rotation[2] = 0.0;
+		console.log(rotation);
+		this.shearCam.rotation.set(rotation);		
+		console.log(this.shearCam.rotation);*/
+		
 		this.originalCam = viewer.scene.getActiveCamera();
+		
+		//let rotation = this.originalCam.rotation.toArray();
+		//rotation[2] = 0.0;
+		//this.originalCam.rotation.set(rotation);
+		
 		this.shearCam = viewer.scene.getActiveCamera().clone();
 		this.shearCam.rotation.set(this.originalCam.rotation.toArray());
 		this.shearCam.updateProjectionMatrix();
@@ -27,19 +42,21 @@ export class OrientedImageControls extends EventDispatcher{
 		this.fovMax = 120;
 
 		this.shear = [0, 0];
+		this.ang = 0.0;
+		this.angDelta = 0.0;
 
 		// const style = ``;
-		this.elUp =    $(`<input type="button" value="🡅" style="position: absolute; top: 10px; left: calc(50%); z-index: 1000" />`);
+		/*this.elUp =    $(`<input type="button" value="🡅" style="position: absolute; top: 10px; left: calc(50%); z-index: 1000" />`);
 		this.elRight = $(`<input type="button" value="🡆" style="position: absolute; top: calc(50%); right: 10px; z-index: 1000" />`);
 		this.elDown =  $(`<input type="button" value="🡇" style="position: absolute; bottom: 10px; left: calc(50%); z-index: 1000" />`);
-		this.elLeft =  $(`<input type="button" value="🡄" style="position: absolute; top: calc(50%); left: 10px; z-index: 1000" />`);
+		this.elLeft =  $(`<input type="button" value="🡄" style="position: absolute; top: calc(50%); left: 10px; z-index: 1000" />`);*/
 		this.elExit = $(`<input type="button" data-i18n="[value]tt.back_3d_view" style="position: absolute; bottom: 10px; right: 10px; z-index: 1000" />`);
 
 		this.elExit.click( () => {
 			this.release();
 		});
 
-		this.elUp.click(() => {
+		/*this.elUp.click(() => {
 			const fovY = viewer.getFOV();
 			const top = Math.tan(THREE.Math.degToRad(fovY / 2));
 			this.shear[1] += 0.1 * top;
@@ -61,16 +78,65 @@ export class OrientedImageControls extends EventDispatcher{
 			const fovY = viewer.getFOV();
 			const top = Math.tan(THREE.Math.degToRad(fovY / 2));
 			this.shear[0] -= 0.1 * top;
-		});
+		});*/
 
 		this.scene = null;
 		this.sceneControls = new THREE.Scene();
+
+		let drag = (e) => {
+			if (e.drag.startHandled === undefined) {
+				e.drag.startHandled = true;
+			}
+
+			let ndrag = {
+				x: e.drag.lastDrag.x / this.renderer.domElement.clientWidth,
+				y: e.drag.lastDrag.y / this.renderer.domElement.clientHeight
+			};
+
+			if (e.drag.mouse === MOUSE.LEFT) {				
+				const fovY = viewer.getFOV();
+				const top = Math.tan(THREE.Math.degToRad(fovY / 2));				
+				this.shear[0] -= ndrag.x * top * 2.5;
+				this.shear[1] += ndrag.y * top * 2.5;
+				
+			} else if (e.drag.mouse === MOUSE.RIGHT) {
+				/*if(Math.abs(ndrag.x) > Math.abs(ndrag.y))
+					this.ang += Math.PI * ndrag.x;
+				else
+					this.ang -= Math.PI * ndrag.y;*/
+				//console.log(e.drag.end.x - 0.5 * this.renderer.domElement.clientWidth); //G-D
+				//console.log(-e.drag.end.y + 0.5 * this.renderer.domElement.clientHeight); //H-B
+				
+				
+				let a = new THREE.Vector2( e.drag.start.x - 0.5 * this.renderer.domElement.clientWidth, 
+										  -e.drag.start.y + 0.5 * this.renderer.domElement.clientHeight);
+				let b = new THREE.Vector2( e.drag.end.x - 0.5 * this.renderer.domElement.clientWidth, 
+										  -e.drag.end.y + 0.5 * this.renderer.domElement.clientHeight);
+				let angAB = Math.acos(a.dot(b) / (a.length() * b.length()));
+				let sign = 0;
+				
+				if(Math.abs(Math.abs(a.angle() - b.angle()) - angAB) < 0.001) {
+					sign = -Math.sign(a.angle() - b.angle());
+				} else {
+					sign = Math.sign(a.angle() - b.angle());
+				}
+				
+				this.angDelta = sign * angAB;
+			}
+		};
+		
+		let drop = e => {
+			this.ang += this.angDelta;
+			this.angDelta = 0.0;
+		};
 
 		let scroll = (e) => {
 			this.fovDelta += -e.delta * 1.0;
 		};
 
 		this.addEventListener('mousewheel', scroll);
+		this.addEventListener('drag', drag);
+		this.addEventListener('drop', drop);
 		//this.addEventListener("mousemove", onMove);
 	}
 
@@ -97,10 +163,10 @@ export class OrientedImageControls extends EventDispatcher{
 		this.shear = [0, 0];
 
 
-		elRoot.append(this.elUp);
-		elRoot.append(this.elRight);
-		elRoot.append(this.elDown);
-		elRoot.append(this.elLeft);
+		//elRoot.append(this.elUp);
+		//elRoot.append(this.elRight);
+		//elRoot.append(this.elDown);
+		//elRoot.append(this.elLeft);
 		elRoot.append(this.elExit);
 		
 		elRoot.i18n();		
@@ -111,10 +177,10 @@ export class OrientedImageControls extends EventDispatcher{
 
 		this.viewer.scene.overrideCamera = null;
 
-		this.elUp.detach();
+		/*this.elUp.detach();
 		this.elRight.detach();
 		this.elDown.detach();
-		this.elLeft.detach();
+		this.elLeft.detach();*/
 		this.elExit.detach();
 
 		this.viewer.setFOV(this.originalFOV);
@@ -193,15 +259,24 @@ export class OrientedImageControls extends EventDispatcher{
 
 		const [sx, sy] = this.shear;
 		const mShear = new THREE.Matrix4().set(
-			1, 0, sx, 0,
-			0, 1, sy, 0,
-			0, 0, 1, 0,
-			0, 0, 0, 1,
+			1.0, 0.0, sx,  0.0,
+			0.0, 1.0, sy,  0.0,
+			0.0, 0.0, 1.0, 0.0,
+			0.0, 0.0, 0.0, 1.0,
+		);
+		
+		const mRot = new THREE.Matrix4().set(
+			Math.cos(this.ang + this.angDelta), -Math.sin(this.ang + this.angDelta), 0.0, 0.0,  
+			Math.sin(this.ang + this.angDelta),  Math.cos(this.ang + this.angDelta), 0.0, 0.0,  
+			0.0, 0.0, 1.0, 0.0,  
+			0.0, 0.0, 0.0, 1.0,			
 		);
 
-		const proj = shearCam.projectionMatrix;
+		const proj = shearCam.projectionMatrix;		
 		proj.multiply(mShear);
-		shearCam.projectionMatrixInverse.getInverse( proj );
+		proj.multiply(mRot);
+		shearCam.projectionMatrixInverse.copy(proj).invert(); //1.8
+		//shearCam.projectionMatrixInverse.getInverse( proj );
 
 		let total = shearCam.projectionMatrix.elements.reduce( (a, i) => a + i, 0);
 

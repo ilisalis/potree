@@ -1,9 +1,22 @@
 
+import * as THREE from "../../libs/three.js/build/three.module.js";
+
 export class PotreeRenderer {
 
 	constructor (viewer) {
 		this.viewer = viewer;
 		this.renderer = viewer.renderer;
+		
+		{
+			let dummyScene = new THREE.Scene();
+			let geometry = new THREE.SphereGeometry(0.001, 2, 2);
+			let mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial());
+			mesh.position.set(36453, 35163, 764712);
+			dummyScene.add(mesh);
+
+			this.dummyMesh = mesh;
+			this.dummyScene = dummyScene;
+		}
 	}
 
 	clearTargets(){
@@ -15,21 +28,18 @@ export class PotreeRenderer {
 
 		// render skybox
 		if(viewer.background === "skybox"){
-			renderer.setClearColor(0x000000, 0);
-			renderer.clear(true, true, false);
+			renderer.setClearColor(0xff0000, 1);
 		}else if(viewer.background === "gradient"){
-			renderer.setClearColor(0x000000, 0);
-			renderer.clear(true, true, false);
+			renderer.setClearColor(0x00ff00, 1);
 		}else if(viewer.background === "black"){
 			renderer.setClearColor(0x000000, 1);
-			renderer.clear(true, true, false);
 		}else if(viewer.background === "white"){
 			renderer.setClearColor(0xFFFFFF, 1);
-			renderer.clear(true, true, false);
 		}else{
 			renderer.setClearColor(0x000000, 0);
-			renderer.clear(true, true, false);
 		}
+		
+		renderer.clear();
 	}
  
 	render(params){
@@ -43,12 +53,15 @@ export class PotreeRenderer {
 		const width = params.viewport ? params.viewport[2] : renderAreaSize.x;
 		const height = params.viewport ? params.viewport[3] : renderAreaSize.y;
 
-
 		// render skybox
 		if(viewer.background === "skybox"){
 			viewer.skybox.camera.rotation.copy(viewer.scene.cameraP.rotation);
 			viewer.skybox.camera.fov = viewer.scene.cameraP.fov;
 			viewer.skybox.camera.aspect = viewer.scene.cameraP.aspect;
+			
+			viewer.skybox.parent.rotation.x = 0;
+			viewer.skybox.parent.updateMatrixWorld();
+			
 			viewer.skybox.camera.updateProjectionMatrix();
 			renderer.render(viewer.skybox.scene, viewer.skybox.camera);
 		}else if(viewer.background === "gradient"){
@@ -58,7 +71,6 @@ export class PotreeRenderer {
 		for(let pointcloud of this.viewer.scene.pointclouds){
 			const {material} = pointcloud;
 			material.useEDL = false;
-			//material.updateShaderSource();
 		}
 		
 		viewer.pRenderer.render(viewer.scene.scenePointCloud, camera, null, {

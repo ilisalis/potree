@@ -1,3 +1,4 @@
+import * as THREE from "../../libs/three.js/build/three.module.js";
 THREE.Ray.prototype.distanceToPlaneWithNegative = function (plane) {
 	let denominator = plane.normal.dot(this.direction);
 	if (denominator === 0) {

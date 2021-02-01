@@ -1,5 +1,5 @@
 
-
+import * as THREE from "../libs/three.js/build/three.module.js"
 import {Action} from "./Actions.js";
 import {Utils} from "./utils.js";
 import {EventDispatcher} from "./EventDispatcher.js";
@@ -637,13 +637,13 @@ export class Annotation extends EventDispatcher {
 		this.spheres.push(sphere);
 		
 		{ // edges
-			let lineGeometry = new THREE.LineGeometry();
+			let lineGeometry = new LineGeometry();
 			lineGeometry.setPositions( [
 					0, 0, 0,
 					0, 0, 0,
 			]);
 
-			let edge = new THREE.Line2(lineGeometry, new THREE.LineMaterial({ color: 0x00ff00, linewidth: 2, depthTest: false }));
+			let edge = new Line2(lineGeometry, new LineMaterial({ color: 0x00ff00, linewidth: 2, depthTest: false }));
 			edge.position.copy(point.position);
 			
 			this.scene.scene.add(edge);
