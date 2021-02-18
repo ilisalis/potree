@@ -312,10 +312,11 @@ function loadProfile(viewer, data){
 }
 
 function loadClassification(viewer, data){
-	if(!data){
+	if(!data || data.length == 0){
 		return;
 	}
 
+	$("#menu_filters").show();	
 	const classifications = data;
 
 	viewer.setClassifications(classifications);

@@ -1411,7 +1411,7 @@ export class Viewer extends EventDispatcher{
 					try{
 
 						const text = await file.text();
-						const json = JSON.parse(text); //1.8 JSON5 --> JSON
+						const json = JSON5.parse(text); //1.8 JSON5 --> JSON
 
 						if(json.type === "Potree"){
 							Potree.loadProject(viewer, json);

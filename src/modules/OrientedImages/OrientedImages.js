@@ -305,13 +305,13 @@ export class OrientedImageLoader{
 			orientedImages.push(orientedImage);
 		}
 
-		let hoveredElement = null;
+		//let hoveredElement = null;
 		let clipVolume = null;
 
 		const onMouseMove = (evt) => {
 			const tStart = performance.now();
-			if(hoveredElement){
-				hoveredElement.line.material.color.setRGB(0, 1, 0);
+			if(orientedImageControls.hoveredElement){
+				orientedImageControls.hoveredElement.line.material.color.setRGB(0, 1, 0);
 			}
 			evt.preventDefault();
 
@@ -334,27 +334,31 @@ export class OrientedImageLoader{
 			let selectionChanged = false;
 
 			if ( intersects.length > 0){
-				//console.log(intersects);
 				const intersection = intersects[0];
 				const orientedImage = intersection.object.orientedImage;
-				orientedImage.line.material.color.setRGB(1, 0, 0);
-				selectionChanged = hoveredElement !== orientedImage;
-				hoveredElement = orientedImage;
+				
+				if(intersection.object.visible){
+					orientedImage.line.material.color.setRGB(1, 0, 0);
+					selectionChanged = orientedImageControls.hoveredElement !== orientedImage;
+					orientedImageControls.hoveredElement = orientedImage;
+				}else{
+					orientedImageControls.hoveredElement = null;
+				}
 			}else{
-				hoveredElement = null;
+				orientedImageControls.hoveredElement = null;
 			}
 
-			let shouldRemoveClipVolume = clipVolume !== null && hoveredElement === null;
-			let shouldAddClipVolume = clipVolume === null && hoveredElement !== null;
+			let shouldRemoveClipVolume = clipVolume !== null && orientedImageControls.hoveredElement === null;
+			let shouldAddClipVolume = clipVolume === null && orientedImageControls.hoveredElement !== null;
 
-			if(clipVolume !== null && (hoveredElement === null || selectionChanged)){
+			if(clipVolume !== null && (orientedImageControls.hoveredElement === null || selectionChanged)){
 				// remove existing
 				viewer.scene.removePolygonClipVolume(clipVolume);
 				clipVolume = null;
 			}
 			
 			if(shouldAddClipVolume || selectionChanged){
-				const img = hoveredElement;
+				const img = orientedImageControls.hoveredElement;
 				const fov = cameraParams.fov;
 				const aspect  = cameraParams.width / cameraParams.height;
 				const near = 1.0;
@@ -401,9 +405,10 @@ export class OrientedImageLoader{
 			const newCamPos = image.position.clone();
 			const newCamTarget = mesh.position.clone();
 
-			viewer.scene.view.setView(newCamPos, newCamTarget, 500, () => {
+			orientedImageControls.capture(image);
+			viewer.scene.view.setView(newCamPos, newCamTarget, 500);/*, () => {
 				orientedImageControls.capture(image);
-			});
+			});*/
 
 			if(image.texture === null){
 
@@ -428,23 +433,21 @@ export class OrientedImageLoader{
 						mesh.material.needsUpdate = true;
 					}
 				);
-				
-
 			}
 		};
 
 		const onMouseClick = (evt) => {
-
-			if(orientedImageControls.hasSomethingCaptured()){
-				return;
-			}
-
-			if(hoveredElement){
-				moveToImage(hoveredElement);
+			// if(orientedImageControls.hasSomethingCaptured()){
+				// return;
+			// }
+			
+			if(orientedImageControls.hoveredElement && orientedImageControls.isNewCapture(orientedImageControls.hoveredElement)){				
+				moveToImage(orientedImageControls.hoveredElement);
 			}
 		};
+		
 		viewer.renderer.domElement.addEventListener( 'mousemove', onMouseMove, false );
-		viewer.renderer.domElement.addEventListener( 'mousedown', onMouseClick, false );
+		viewer.renderer.domElement.addEventListener( 'mousedown', onMouseClick, false );		
 
 		viewer.addEventListener("update", () => {
 

@@ -9,22 +9,12 @@ export class OrientedImageControls extends EventDispatcher{
 	constructor(viewer){
 		super();
 		
+		this.hoveredElement = null;
+		
 		this.viewer = viewer;
 		this.renderer = viewer.renderer;
-
-/*this.originalCam = viewer.scene.getActiveCamera();
-		this.shearCam = viewer.scene.getActiveCamera().clone();
-		let rotation = this.originalCam.rotation.toArray();
-		rotation[2] = 0.0;
-		console.log(rotation);
-		this.shearCam.rotation.set(rotation);		
-		console.log(this.shearCam.rotation);*/
 		
 		this.originalCam = viewer.scene.getActiveCamera();
-		
-		//let rotation = this.originalCam.rotation.toArray();
-		//rotation[2] = 0.0;
-		//this.originalCam.rotation.set(rotation);
 		
 		this.shearCam = viewer.scene.getActiveCamera().clone();
 		this.shearCam.rotation.set(this.originalCam.rotation.toArray());
@@ -98,16 +88,7 @@ export class OrientedImageControls extends EventDispatcher{
 				const top = Math.tan(THREE.Math.degToRad(fovY / 2));				
 				this.shear[0] -= ndrag.x * top * 2.5;
 				this.shear[1] += ndrag.y * top * 2.5;
-				
 			} else if (e.drag.mouse === MOUSE.RIGHT) {
-				/*if(Math.abs(ndrag.x) > Math.abs(ndrag.y))
-					this.ang += Math.PI * ndrag.x;
-				else
-					this.ang -= Math.PI * ndrag.y;*/
-				//console.log(e.drag.end.x - 0.5 * this.renderer.domElement.clientWidth); //G-D
-				//console.log(-e.drag.end.y + 0.5 * this.renderer.domElement.clientHeight); //H-B
-				
-				
 				let a = new THREE.Vector2( e.drag.start.x - 0.5 * this.renderer.domElement.clientWidth, 
 										  -e.drag.start.y + 0.5 * this.renderer.domElement.clientHeight);
 				let b = new THREE.Vector2( e.drag.end.x - 0.5 * this.renderer.domElement.clientWidth, 
@@ -133,26 +114,38 @@ export class OrientedImageControls extends EventDispatcher{
 		let scroll = (e) => {
 			this.fovDelta += -e.delta * 1.0;
 		};
+		
+		let dblclick = (e) => {
+			if(!this.hoveredElement){
+				this.release();
+			}			
+		};
 
 		this.addEventListener('mousewheel', scroll);
 		this.addEventListener('drag', drag);
 		this.addEventListener('drop', drop);
-		//this.addEventListener("mousemove", onMove);
+		this.addEventListener('dblclick', dblclick);
 	}
 
 	hasSomethingCaptured(){
 		return this.image !== null;
 	}
+	
+	isNewCapture(image){
+		return this.image !== image;
+	}
 
 	capture(image){
-		if(this.hasSomethingCaptured()){
+		if(!this.isNewCapture(image)){
 			return;
+		}
+		
+		if(!this.hasSomethingCaptured()){
+			this.originalFOV = this.viewer.getFOV();
+			this.originalControls = this.viewer.getControls();
 		}
 
 		this.image = image;
-
-		this.originalFOV = this.viewer.getFOV();
-		this.originalControls = this.viewer.getControls();
 
 		this.viewer.setControls(this);
 		this.viewer.scene.overrideCamera = this.shearCam;
@@ -161,7 +154,7 @@ export class OrientedImageControls extends EventDispatcher{
 		const elRoot = $(elCanvas.parentElement);
 
 		this.shear = [0, 0];
-
+		//this.ang = 0;
 
 		//elRoot.append(this.elUp);
 		//elRoot.append(this.elRight);
