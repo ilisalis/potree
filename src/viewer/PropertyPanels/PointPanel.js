@@ -39,14 +39,14 @@ export class PointPanel extends MeasurePanel{
 		elCoordiantesContainer.empty();
 		elCoordiantesContainer.append(this.createCoordinatesTable(this.measurement.points.map(p => p.position)));
 		
-		proj4.defs("WGS84", "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs");
-		proj4.defs("pointcloud", this.viewer.getProjection());
+		// proj4.defs("WGS84", "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs");
+		// proj4.defs("pointcloud", this.viewer.getProjection());
 		
-		var fromModel = proj4.defs("pointcloud");
-		var toWGS84 = proj4.defs("WGS84");
+		// var fromModel = proj4.defs("pointcloud");
+		// var toWGS84 = proj4.defs("WGS84");
 		
-		var coordinate = proj4(fromModel, toWGS84, [this.measurement.points[0].position.x, this.measurement.points[0].position.y]);
-		console.log(coordinate);
+		// var coordinate = proj4(fromModel, toWGS84, [this.measurement.points[0].position.x, this.measurement.points[0].position.y]);
+		// console.log(coordinate);
 
 		let elAttributesContainer = this.elContent.find('.attributes_table_container');
 		elAttributesContainer.empty();

@@ -24,7 +24,9 @@ export class OrientedImageControls extends EventDispatcher{
 		};
 
 		this.image = null;
-
+		this.isImageMode = false;
+		this.isInit = false;
+		
 		this.fadeFactor = 20;
 		this.fovDelta = 0;
 
@@ -34,6 +36,8 @@ export class OrientedImageControls extends EventDispatcher{
 		this.shear = [0, 0];
 		this.ang = 0.0;
 		this.angDelta = 0.0;
+		
+		this.p0_prev = null;
 
 		// const style = ``;
 		/*this.elUp =    $(`<input type="button" value="🡅" style="position: absolute; top: 10px; left: calc(50%); z-index: 1000" />`);
@@ -143,8 +147,14 @@ export class OrientedImageControls extends EventDispatcher{
 		if(!this.hasSomethingCaptured()){
 			this.originalFOV = this.viewer.getFOV();
 			this.originalControls = this.viewer.getControls();
+		} else {
+			// this.image.line.visible = true;
 		}
-
+		
+		this.isImageMode = false;
+		this.isInit = false;
+		
+		//this.image.line.visible = true;
 		this.image = image;
 
 		this.viewer.setControls(this);
@@ -154,12 +164,8 @@ export class OrientedImageControls extends EventDispatcher{
 		const elRoot = $(elCanvas.parentElement);
 
 		this.shear = [0, 0];
-		//this.ang = 0;
-
-		//elRoot.append(this.elUp);
-		//elRoot.append(this.elRight);
-		//elRoot.append(this.elDown);
-		//elRoot.append(this.elLeft);
+		this.ang = 0;
+		
 		elRoot.append(this.elExit);
 		
 		elRoot.i18n();		
@@ -185,6 +191,41 @@ export class OrientedImageControls extends EventDispatcher{
 	}
 
 	update (delta) {
+		
+		if(this.isImageMode && !this.isInit){
+			const {width, height} = this.image;
+			const aspect = width / height;
+		
+			let p0 = new THREE.Vector3(0.0, 0.0, 0.0);
+				p0 = p0.applyMatrix4(this.image.mesh.matrixWorld);
+				p0 = p0.project(this.shearCam);
+				
+			let p1 = new THREE.Vector3(1.0, 0.0, 0.0);
+				p1 = p1.applyMatrix4(this.image.mesh.matrixWorld);
+				p1 = p1.project(this.shearCam);
+			
+			let size = this.viewer.renderer.getSize(new THREE.Vector2());
+			
+			let p0_win = new THREE.Vector2(size.x * (0.5 * p0.x + 0.5), size.y * (0.5 + 0.5 * p0.y));
+			let p1_win = new THREE.Vector2(size.x * (0.5 * p1.x + 0.5), size.y * (0.5 + 0.5 * p1.y));
+			
+			let proj_dir = new THREE.Vector2(p1_win.x - p0_win.x, p1_win.y - p0_win.y);
+			let ang_error = proj_dir.angle();
+			
+			if(ang_error > Math.PI)
+				ang_error -= 2 * Math.PI;			
+			// console.log("ERR: " + THREE.Math.radToDeg(ang_error));
+			
+			if(!isNaN(ang_error)) {				
+				if(Math.abs(ang_error) < 0.0001) {
+					this.isInit = true;
+				} else {
+					this.ang += -0.9 * ang_error;
+					this.angDelta = 0.0;
+				}
+			}
+		}
+		
 		// const view = this.scene.view;
 
 		// let prevTotal = this.shearCam.projectionMatrix.elements.reduce( (a, i) => a + i, 0);

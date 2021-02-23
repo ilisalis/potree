@@ -26,21 +26,27 @@ function createMaterial(){
 	let fragmentShader = `
 	uniform sampler2D tColor;
 	uniform float uOpacity;
+	uniform float isTextureValid;
 	varying vec2 vUV;
 	varying vec4 vDebug;
 	void main(){
-		vec4 color = texture2D(tColor, vUV);
+		vec4 color = vec4(0.0, 0.0, 0.0, 1.0);
+		if(isTextureValid == 1.0){
+			color = texture2D(tColor, vUV);
+		}
+		
 		gl_FragColor = color;
-		gl_FragColor.a = uOpacity;
+		// gl_FragColor.a = uOpacity;
 	}
 	`;
 	const material = new THREE.ShaderMaterial( {
 		uniforms: {
 			// time: { value: 1.0 },
 			// resolution: { value: new THREE.Vector2() }
-			tColor: {value: new THREE.Texture() },
-			uNear: {value: 0.0},
-			uOpacity: {value: 1.0},
+			isTextureValid: { value: 0.0 },
+			tColor: { value: new THREE.Texture() },
+			uNear: { value: 0.0 },
+			uOpacity: { value: 1.0 },
 		},
 		vertexShader: vertexShader,
 		fragmentShader: fragmentShader,
@@ -48,6 +54,7 @@ function createMaterial(){
 	} );
 
 	material.side = THREE.DoubleSide;
+	material.transparent = true;
 
 	return material;
 }
@@ -318,6 +325,7 @@ export class OrientedImageLoader{
 			//var array = getMousePosition( container, evt.clientX, evt.clientY );
 			const rect = viewer.renderer.domElement.getBoundingClientRect();
 			const [x, y] = [evt.clientX, evt.clientY];
+			// console.log(x + ", " + y);
 			const array = [ 
 				( x - rect.left ) / rect.width, 
 				( y - rect.top ) / rect.height 
@@ -405,21 +413,15 @@ export class OrientedImageLoader{
 			const newCamPos = image.position.clone();
 			const newCamTarget = mesh.position.clone();
 
-			orientedImageControls.capture(image);
-			viewer.scene.view.setView(newCamPos, newCamTarget, 500);/*, () => {
-				orientedImageControls.capture(image);
-			});*/
-
 			if(image.texture === null){
-
 				const target = image;
-
 				const tmpImagePath = `${Potree.resourcePath}/images/loading.jpg`;
 				new THREE.TextureLoader().load(tmpImagePath,
 					(texture) => {
 						if(target.texture === null){
 							target.texture = texture;
 							target.mesh.material.uniforms.tColor.value = texture;
+							target.mesh.material.uniforms.isTextureValid.value = 1.0;
 							mesh.material.needsUpdate = true;
 						}
 					}
@@ -430,10 +432,16 @@ export class OrientedImageLoader{
 					(texture) => {
 						target.texture = texture;
 						target.mesh.material.uniforms.tColor.value = texture;
+						target.mesh.material.uniforms.isTextureValid.value = 1.0;
 						mesh.material.needsUpdate = true;
 					}
 				);
 			}
+			
+			orientedImageControls.capture(image);
+			viewer.scene.view.setView(newCamPos, newCamTarget, 1, () => {
+				orientedImageControls.isImageMode = true;
+			});
 		};
 
 		const onMouseClick = (evt) => {
