@@ -13,7 +13,7 @@ export class TextSprite extends THREE.Object3D{
 		texture.magFilter = THREE.LinearFilter;
 		let spriteMaterial = new THREE.SpriteMaterial({
 			map: texture,
-			depthTest: false,
+			depthTest: true,
 			depthWrite: false});
 
 		this.texture = texture;

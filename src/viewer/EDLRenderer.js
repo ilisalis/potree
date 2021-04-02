@@ -261,9 +261,7 @@ export class EDLRenderer{
 					clipSpheres: viewer.scene.volumes.filter(v => (v instanceof SphereVolume)),
 					transparent: false,
 				});
-			}
-
-			
+			}			
 		}
 
 		viewer.dispatchEvent({type: "render.pass.scene", viewer: viewer, renderTarget: this.rtRegular});
@@ -318,7 +316,6 @@ export class EDLRenderer{
 		viewer.renderer.setViewport(0, 0, width, height);
 		
 		viewer.dispatchEvent({type: "render.pass.end",viewer: viewer});
-
 	}
 }
 

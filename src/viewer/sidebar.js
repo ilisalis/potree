@@ -8,6 +8,7 @@ import {PropertiesPanel} from "./PropertyPanels/PropertiesPanel.js"
 import {PointCloudTree} from "../PointCloudTree.js"
 import {Profile} from "../utils/Profile.js"
 import {Measure} from "../utils/Measure.js"
+import {MeasureNew} from "../utils/MeasuringToolNew.js"
 import {Annotation} from "../Annotation.js"
 import {CameraMode, ClipTask, ClipMethod} from "../defines.js"
 import {ScreenBoxSelectTool} from "../utils/ScreenBoxSelectTool.js"
@@ -59,8 +60,6 @@ export class Sidebar{
 		$('#potree_version_number').html(Potree.version.major + "." + Potree.version.minor + Potree.version.suffix);
 	}
 
-		
-
 	initToolbar(){
 		$('#sldAnnotationMarkers').slider({
 			value: this.viewer.getAnnotationMarker(),
@@ -77,8 +76,25 @@ export class Sidebar{
 
 		$('#lblAnnotationMarkers')[0].innerHTML = Utils.addCommas(this.viewer.getAnnotationMarker());
 		
-		// ANGLE
 		let elToolbar = $('#tools');
+		
+		// CUSTOM ANNOTATION
+		elToolbar.append(this.createToolIcon(
+			Potree.resourcePath + '/icons/annotation_area.svg',
+			'[title]tt.annotation_measurement',
+			() => {
+				$('#menu_measurements').next().slideDown(); ;
+				let measurement = this.viewer.measuringToolNew.startInsertion({
+					name: `new_annot`/*`<span data-i18n="scene.new_annot">`+i18n.t("scene.new_annot")+`</span>`*/});
+
+				/*let measurementsRoot = $("#jstree_scene").jstree().get_json("measurements");
+				let jsonNode = measurementsRoot.children.find(child => child.data.uuid === measurement.uuid);
+				$.jstree.reference(jsonNode.id).deselect_all();
+				$.jstree.reference(jsonNode.id).select_node(jsonNode.id);*/
+			}
+		));
+		
+		// ANGLE
 		elToolbar.append(this.createToolIcon(
 			Potree.resourcePath + '/icons/angle.svg',
 			'[title]tt.angle_measurement',
@@ -513,6 +529,10 @@ export class Sidebar{
 		let pcID = tree.jstree('create_node', "#", { "text": "<b><span data-i18n=\"scene.pointclouds\"></span></b>", "id": "pointclouds"}, "last", false, false);
 		let measurementID = tree.jstree('create_node', "#", { "text": "<b><span data-i18n=\"scene.measurements\"></span></b>", "id": "measurements" }, "last", false, false);
 		let annotationsID = tree.jstree('create_node', "#", { "text": "<b><span data-i18n=\"scene.annotations\"></span></b>", "id": "annotations" }, "last", false, false);
+		
+		let newAnnotID = tree.jstree('create_node', "#", { "text": "<b><span data-i18n=\"scene.newannot\">NEW ANNOT</span></b>", "id": "newannot" }, "last", false, false);
+		
+		
 		let otherID = tree.jstree('create_node', "#", { "text": "<b><span data-i18n=\"scene.other\"></span></b>", "id": "other" }, "last", false, false);
 		let vectorsID = tree.jstree('create_node', "#", { "text": "<b><span data-i18n=\"scene.vectors\"></span></b>", "id": "vectors" }, "last", false, false);
 		let imagesID = tree.jstree('create_node', "#", { "text": "<b><span data-i18n=\"scene.images\"></span></b>", "id": "images" }, "last", false, false);
@@ -520,6 +540,9 @@ export class Sidebar{
 		tree.jstree("check_node", pcID);
 		tree.jstree("check_node", measurementID);
 		tree.jstree("check_node", annotationsID);
+		
+		tree.jstree("check_node", newAnnotID);		
+		
 		tree.jstree("check_node", otherID);
 		tree.jstree("check_node", vectorsID);
 		tree.jstree("check_node", imagesID);
@@ -574,6 +597,9 @@ export class Sidebar{
 					node.boundingBox = box;
 					this.viewer.zoomTo(node, 2, 500);
 				}
+			}else if(object instanceof MeasureNew){
+				object.showSpheres = !object.showSpheres;
+				console.log("DBL CLICK");
 			}else if(object instanceof Profile){
 				let points = object.points;
 				let box = new THREE.Box3().setFromPoints(points);
@@ -749,7 +775,16 @@ export class Sidebar{
 			});
 			tree.i18n();  
 		};
-
+		
+		let onNewAnnotationAdded = (e) => {
+			console.log("onNewAnnotationAdded");
+			console.log(e);
+			let measurement = e.measurement;
+			let icon = Utils.getMeasurementIcon(measurement);
+			createNode(newAnnotID, measurement.name, icon, measurement);
+			tree.i18n();	  
+		};
+		
 		let onCameraAnimationAdded = (e) => {
 			const animation = e.animation;
 
@@ -821,6 +856,9 @@ export class Sidebar{
 
 		this.viewer.scene.addEventListener("pointcloud_added", onPointCloudAdded);
 		this.viewer.scene.addEventListener("measurement_added", onMeasurementAdded);
+		
+		this.viewer.scene.addEventListener("new_annotation_added", onNewAnnotationAdded);
+		
 		this.viewer.scene.addEventListener("profile_added", onProfileAdded);
 		this.viewer.scene.addEventListener("volume_added", onVolumeAdded);
 		this.viewer.scene.addEventListener("camera_animation_added", onCameraAnimationAdded);
@@ -968,6 +1006,12 @@ export class Sidebar{
 
 		this.viewer.addEventListener("scene_changed", (e) => {
 			propertiesPanel.setScene(e.scene);
+			
+			
+			e.oldScene.removeEventListener("new_annotation_added", onNewAnnotationAdded);
+			e.scene.addEventListener("new_annotation_added", onNewAnnotationAdded);
+		
+
 
 			e.oldScene.removeEventListener("pointcloud_added", onPointCloudAdded);
 			e.oldScene.removeEventListener("pointcloud_removed", onPointCloudRemoved);

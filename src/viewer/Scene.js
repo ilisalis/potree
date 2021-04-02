@@ -35,7 +35,9 @@ export class Scene extends EventDispatcher{
 		this.orientedImages = [];
 		this.images360 = [];
 		this.geopackages = [];
-		this.others = [];		   
+		this.others = [];	
+
+		this.customAnnotationsList = [];
 		
 		this.fpControls = null;
 		this.orbitControls = null;
@@ -290,7 +292,7 @@ export class Scene extends EventDispatcher{
 			'measurement': measurement
 		});
 	};
-
+	
 	removeMeasurement (measurement) {
 		let index = this.measurements.indexOf(measurement);
 		if (index > -1) {
@@ -302,6 +304,17 @@ export class Scene extends EventDispatcher{
 			});
 		}
 	}
+	
+	addNewAnnotation(measurement){
+		measurement.lengthUnit = this.lengthUnit;
+		measurement.lengthUnitDisplay = this.lengthUnitDisplay;
+		this.customAnnotationsList.push(measurement);
+		this.dispatchEvent({
+			'type': 'new_annotation_added',
+			'scene': this,
+			'measurement': measurement
+		});
+	};
 
 	addProfile (profile) {
 		this.profiles.push(profile);

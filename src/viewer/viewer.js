@@ -18,8 +18,10 @@ import {Sidebar} from "./sidebar.js";
 
 import {AnnotationTool} from "../utils/AnnotationTool.js";
 import {MeasuringTool} from "../utils/MeasuringTool.js";
+import {MeasuringToolNew} from "../utils/MeasuringToolNew.js";
 import {ProfileTool} from "../utils/ProfileTool.js";
 import {VolumeTool} from "../utils/VolumeTool.js";
+import {CustomAnnotationTool} from "../utils/CustomAnnotationTool.js";
 
 import {InputHandler} from "../navigation/InputHandler.js";
 import {NavigationCube} from "./NavigationCube.js";
@@ -30,6 +32,7 @@ import {FirstPersonControls} from "../navigation/FirstPersonControls.js";
 import {EarthControls} from "../navigation/EarthControls.js";
 import {DeviceOrientationControls} from "../navigation/DeviceOrientationControls.js";
 import {VRControls} from "../navigation/VRControls.js";
+
 import { EventDispatcher } from "../EventDispatcher.js";
 import { ClassificationScheme } from "../materials/ClassificationScheme.js";
 import { VRButton } from '../../libs/three.js/extra/VRButton.js';
@@ -330,8 +333,28 @@ export class Viewer extends EventDispatcher{
 
 		this.annotationTool = new AnnotationTool(this);
 		this.measuringTool = new MeasuringTool(this);
+		this.measuringToolNew = new MeasuringToolNew(this);
 		this.profileTool = new ProfileTool(this);
 		this.volumeTool = new VolumeTool(this);
+		
+		this.customAnnotationTool = new CustomAnnotationTool(this);
+		
+		{ // Custom Annotations
+			
+			this.onCustomAnnotationAdded = e => {
+				console.log("append custom annotation to scene");
+				$("#potree_annotation_container").append(e.annotation.domElement);
+				e.annotation.scene = this.scene;
+				
+				/*e.annotation.traverse(node => {
+					$("#potree_annotation_container").append(node.domElement);
+					node.scene = this.scene;
+				});*/
+			};
+			
+			this.measuringToolNew.addEventListener('custom_annotation_added', this.onCustomAnnotationAdded);
+			
+		}
 
 		}catch(e){
 			this.onCrash(e);
@@ -421,6 +444,7 @@ export class Viewer extends EventDispatcher{
 
 			if (!this.onAnnotationAdded) {
 				this.onAnnotationAdded = e => {
+					console.log("add annotation to scene");
 					e.annotation.traverse(node => {
 						$("#potree_annotation_container").append(node.domElement);
 						node.scene = this.scene;
@@ -1536,6 +1560,10 @@ export class Viewer extends EventDispatcher{
 		let renderAreaSize = this.renderer.getSize(new THREE.Vector2());
 
 		let viewer = this;
+		
+		for (let annotation of this.scene.customAnnotationsList) {
+			annotation.updateAnnotation(viewer);
+		}
 
 		let visibleNow = [];
 		this.scene.annotations.traverse(annotation => {
@@ -1565,13 +1593,54 @@ export class Viewer extends EventDispatcher{
 			let screenSize = 0;
 
 			{
+				
+				let isOccluded = (annotation) => {
+					let annotationPosition = annotation.position.clone();
+					annotationPosition.add(annotation.offset);
+					if (!annotationPosition) {
+						annotationPosition = annotation.boundingBox.getCenter(new THREE.Vector3());
+					}
+			
+					let screenPosition = new THREE.Vector3();
+					screenPosition.copy(annotationPosition).project(this.scene.getActiveCamera());
+					screenPosition.x = renderAreaSize.x * (screenPosition.x + 1) / 2;
+					screenPosition.y = renderAreaSize.y * (1 - (screenPosition.y + 1) / 2);
+					
+					let I = Utils.getMousePointCloudIntersection(
+						screenPosition, 
+						this.scene.getActiveCamera(), 
+						this, 
+						this.scene.pointclouds,
+						{pickClipped: true});
+					
+					if (I) {						
+						//console.log(I.distance + " ; " + distance);
+						if(I.distance < 0.95 * viewer.scene.cameraP.position.distanceTo(annotationPosition)) {
+							for (let child of annotation.children) {
+								if (child.visible){
+									if(!isOccluded(child)) {
+										return false; //One child visible --> Visible
+									}
+								}
+							}							
+							return true; //Non visible
+						}
+					}
+					
+					return false; //Visible
+				};
+				
+				
 				// SCREEN POS
 				screenPos.copy(position).project(this.scene.getActiveCamera());
 				screenPos.x = renderAreaSize.x * (screenPos.x + 1) / 2;
 				screenPos.y = renderAreaSize.y * (1 - (screenPos.y + 1) / 2);
 
 				if(!this.showOccludedAnnotation){
-					let I = Utils.getMousePointCloudIntersection(
+					if(isOccluded(annotation)){
+						return false;
+					}
+					/*let I = Utils.getMousePointCloudIntersection(
 						screenPos, 
 						this.scene.getActiveCamera(), 
 						this, 
@@ -1583,7 +1652,7 @@ export class Viewer extends EventDispatcher{
 						if(I.distance < 0.95 * distance) {
 							return false; //Non visible
 						}
-					}
+					}*/
 				}
 
 				// SCREEN SIZE
@@ -1619,7 +1688,7 @@ export class Viewer extends EventDispatcher{
 					}
 				}
 
-				return expand;
+				// return expand;
 			} else {
 				//annotation.display = (screenPos.z >= -1 && screenPos.z <= 1);
 				let inFrustum = (screenPos.z >= -1 && screenPos.z <= 1);

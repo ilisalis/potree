@@ -88,7 +88,7 @@ export class Annotation extends EventDispatcher {
 				return new Action(a);
 			}
 		});
-
+		
 		for (let action of this.actions) {
 			action.pairWith(this);
 		}
