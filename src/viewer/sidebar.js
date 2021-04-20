@@ -1519,7 +1519,7 @@ export class Sidebar{
 			});
 		});
 
-		let languages = [
+		this.languages = [
 			["EN", "en"],
 			["FR", "fr"],
 			["DE", "de"],
@@ -1529,8 +1529,8 @@ export class Sidebar{
 		];
 
 		let elLanguages = $('#potree_languages');
-		for(let i = 0; i < languages.length; i++){
-			let [key, value] = languages[i];
+		for(let i = 0; i < this.languages.length; i++){
+			let [key, value] = this.languages[i];
 			let element = $(`<a>${key}</a>`);
 			element.click(() => this.viewer.setLanguage(value));
 
@@ -1540,7 +1540,7 @@ export class Sidebar{
 			
 			elLanguages.append(element);
 
-			if(i < languages.length - 1){
+			if(i < this.languages.length - 1){
 				elLanguages.append($(document.createTextNode(' - ')));	
 			}
 		}
@@ -1766,14 +1766,23 @@ export class Sidebar{
 			() => {this.viewer.setBottomView()}
 		));
 
-		let elCameraProjection = $("#camera_projection_options");
-		elCameraProjection.selectgroup();
-		elCameraProjection.find("input").click( (e) => {
-			this.viewer.setCameraMode(CameraMode[e.target.value]);
-		});
-		let cameraMode = Object.keys(CameraMode)
-			.filter(key => CameraMode[key] === this.viewer.scene.cameraMode);
-		elCameraProjection.find(`input[value=${cameraMode}]`).trigger("click");
+		{
+			let elCameraProjection = $("#camera_projection_options");
+			elCameraProjection.selectgroup();
+			elCameraProjection.find("input").click( (e) => {
+				this.viewer.setCameraMode(CameraMode[e.target.value]);
+			});
+			let cameraMode = Object.keys(CameraMode)
+				.filter(key => CameraMode[key] === this.viewer.scene.cameraMode);
+			elCameraProjection.find(`input[value=${cameraMode}]`).trigger("click");
+			
+			this.viewer.addEventListener('camera_mode_changed', (event) => {
+				let cameraMode = Object.keys(CameraMode)
+				.filter(key => CameraMode[key] === this.viewer.scene.cameraMode);	
+				elCameraProjection.find(`input[value=${cameraMode}]`).prop('checked',true);
+				elCameraProjection.find(`input[value=${cameraMode}]`).trigger("change");
+			});
+		}
 
 		let speedRange = new THREE.Vector2(1, 10 * 1000);
 
@@ -1835,6 +1844,7 @@ export class Sidebar{
 			let elSplatQuality = $("#splat_quality_options");
 			elSplatQuality.selectgroup();
 			elSplatQuality.find("input").click( (e) => {
+				// console.log(e);
 				if(e.target.value === "standard"){
 					this.viewer.useHQ = false;
 				}else if(e.target.value === "hq"){
@@ -1844,6 +1854,12 @@ export class Sidebar{
 
 			let currentQuality = this.viewer.useHQ ? "hq" : "standard";
 			elSplatQuality.find(`input[value=${currentQuality}]`).trigger("click");
+			
+			this.viewer.addEventListener('use_hq_changed', (event) => {
+				let currentQuality = this.viewer.useHQ ? "hq" : "standard";				
+				elSplatQuality.find(`input[value=${currentQuality}]`).prop('checked',true);
+				elSplatQuality.find(`input[value=${currentQuality}]`).trigger("change");
+			});
 		}
 
 		$('#show_bounding_box').click(() => {

@@ -44,6 +44,8 @@ export class Viewer extends EventDispatcher{
 	
 	constructor(domElement, args = {}){
 		super();
+		
+		this.updateCounter = 0;
 
 		this.renderArea = domElement;
 		this.guiLoaded = false;
@@ -140,6 +142,7 @@ export class Viewer extends EventDispatcher{
 		this.edlRadius = 1.4;
 		this.edlOpacity = 1.0;
 		this.useEDL = false;
+		this.useHQ = false;
 		this.description = "";
 
 		this.classifications = ClassificationScheme.DEFAULT;
@@ -688,6 +691,17 @@ export class Viewer extends EventDispatcher{
 	getEDLEnabled () {
 		return this.useEDL;
 	};
+	
+	setHQEnabled (value) {
+		if (this.useHQ !== value) {
+			this.useHQ = value;
+			this.dispatchEvent({'type': 'use_hq_changed', 'viewer': this});
+		}
+	};
+
+	getHQEnabled () {
+		return this.useHQ;
+	};
 
 	setEDLRadius (value) {
 		if (this.edlRadius !== value) {
@@ -1058,13 +1072,17 @@ export class Viewer extends EventDispatcher{
 	}
 	
 	setCameraMode(mode){
-		this.scene.cameraMode = mode;
+		if(this.scene.cameraMode !== mode) {
+			this.scene.cameraMode = mode;
 
-		for(let pointcloud of this.scene.pointclouds) {
-			pointcloud.material.useOrthographicCamera = mode == CameraMode.ORTHOGRAPHIC;
+			for(let pointcloud of this.scene.pointclouds) {
+				pointcloud.material.useOrthographicCamera = mode == CameraMode.ORTHOGRAPHIC;
+			}
+			
+			this.dispatchEvent({'type': 'camera_mode_changed', 'viewer': this});
 		}
 	}
-
+	
 	getProjection(){
 		const pointcloud = this.scene.pointclouds[0];
 
@@ -1544,8 +1562,152 @@ export class Viewer extends EventDispatcher{
 		}
 		
 	}
-
+	
 	updateAnnotations () {
+		for (let annotation of this.scene.customAnnotationsList) {
+			annotation.updateAnnotation(viewer);
+		}
+		
+		
+		if(this.updateCounter % 5 !== 0) {
+			this.updateCounter += 1;
+			return;			
+		}		
+		this.updateCounter = 1;
+		
+		let viewer = this;
+		this.scene.cameraP.updateMatrixWorld();
+		this.scene.cameraO.updateMatrixWorld();
+		
+		let renderAreaSize = this.renderer.getSize(new THREE.Vector2());
+		
+		let annotationsList = this.scene.annotations.ascendants ();
+		for (let annotation of annotationsList) {
+			
+			if (annotation === this.scene.annotations) {
+				annotation.display = false;
+				continue;
+			}
+			if (!annotation.visible) {
+				annotation.display = false;
+				continue;
+			}
+			
+			let position = annotation.position.clone();
+			position.add(annotation.offset);
+			if (!position) {
+				position = annotation.boundingBox.getCenter(new THREE.Vector3());
+			}
+			
+			let distance = viewer.scene.cameraP.position.distanceTo(position);
+			let radius = annotation.boundingBox.getBoundingSphere(new THREE.Sphere()).radius;
+			
+			// SCREEN POS
+			let screenPos = new THREE.Vector3();
+			screenPos.copy(position).project(this.scene.getActiveCamera());
+			screenPos.x = renderAreaSize.x * (screenPos.x + 1) / 2;
+			screenPos.y = renderAreaSize.y * (1 - (screenPos.y + 1) / 2);
+			
+			// SCREEN SIZE
+			let screenSize = 0;
+			if(viewer.scene.cameraMode == CameraMode.PERSPECTIVE) {
+				let fov = Math.PI * viewer.scene.cameraP.fov / 180;
+				let slope = Math.tan(fov / 2.0);
+				let projFactor =  0.5 * renderAreaSize.y / (slope * distance);
+				screenSize = radius * projFactor;
+			} else {
+				screenSize = Utils.projectedRadiusOrtho(radius, viewer.scene.cameraO.projectionMatrix, renderAreaSize.x, renderAreaSize.y);
+			}
+			
+			let isCollapsed = (annotation) => { //if true: display = false; if false: display = true;
+				if (annotation.children.length > 0 && viewer.hierarchyView !== "ALL") {					
+					let expand = screenSize > annotation.collapseThreshold || annotation.boundingBox.containsPoint(viewer.scene.getActiveCamera().position);
+					annotation.expand = expand;
+					
+					if (!expand || viewer.hierarchyView === "PARENT") {
+						return !(screenPos.z >= -1 && screenPos.z <= 1);
+					}					
+				} else {
+					return !(screenPos.z >= -1 && screenPos.z <= 1);
+				}				
+				return true;
+			}
+			
+			if(isCollapsed(annotation)) {
+				annotation.display = false;
+				continue;
+			}
+			
+			let isOccluded = (annotation) => {
+				let annotationPosition = annotation.position.clone();
+				annotationPosition.add(annotation.offset);
+				if (!annotationPosition) {
+					annotationPosition = annotation.boundingBox.getCenter(new THREE.Vector3());
+				}
+				
+				let screenPosition = new THREE.Vector3();
+				screenPosition.copy(annotationPosition).project(this.scene.getActiveCamera());
+				screenPosition.x = renderAreaSize.x * (screenPosition.x + 1) / 2;
+				screenPosition.y = renderAreaSize.y * (1 - (screenPosition.y + 1) / 2);
+				
+				let I = Utils.getMousePointCloudIntersection(
+					screenPosition, 
+					this.scene.getActiveCamera(), 
+					this, 
+					this.scene.pointclouds,
+					{pickClipped: true});
+				
+				if (I) {
+					if(I.distance < 0.95 * distance/*viewer.scene.cameraP.position.distanceTo(annotationPosition)*/) {
+						//The annotation tree is processed in ascending order (starting with the child), so we can consider the visibility/display of the child as defined (considering occlusion and collapsing). 
+						for (let child of annotation.children) {
+							if(child.visible && child.display) {
+								return false;  //one child visible --> visible
+							}
+						}
+						return true; //non visible
+					}
+				}
+				
+				return false; //visible
+			}
+			
+			if (!this.showOccludedAnnotation && isOccluded(annotation)) {
+				annotation.display = false;
+				continue;
+			}
+			
+			let element = annotation.domElement;
+			element.css("left", screenPos.x + "px");
+			element.css("top", screenPos.y + "px");
+
+			let zIndex = 10000000 - distance * (10000000 / this.scene.cameraP.far);
+			if(annotation.descriptionVisible){
+				zIndex += 10000000;
+			}
+			element.css("z-index", parseInt(zIndex));
+			
+			annotation.scene = this.scene;
+			annotation.display = true;
+		}
+		
+		
+		
+		
+		
+		// console.log(annotationsList);
+		
+		// let annotationsList2 = this.scene.annotations.descendants ();
+		// console.log(annotationsList2);
+		
+		
+
+		
+		
+		
+	}
+
+	updateAnnotations_old () {
 
 		if(!this.visibleAnnotations){
 			this.visibleAnnotations = new Set();

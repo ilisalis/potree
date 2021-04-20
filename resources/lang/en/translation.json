@@ -1,4 +1,27 @@
 {
+	"bc": {
+		"quality_title": "Define model quality",
+		"quality_lq": "Low quality",
+		"quality_mq": "Medium quality",
+		"quality_hq": "High quality",
+		"quality_info": "VERSION EN: Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer",		
+		"display_title": "Display options",
+		"display_perspective": "Perspective view",
+		"display_ortho": "Orthogonal view",
+		"display_cube": "Navigation cube",
+		"display_images": "Images",
+		"display_info": "VERSION EN: Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer",
+		"measure_title": "Take a measurement",
+		"measure_distance": "Measure distance",
+		"measure_height": "Measure height",
+		"measure_scalebar": "Scale display",
+		"measure_info": "VERSION EN: Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer",		
+		"segmentation_title": "Define a delimitation",
+		"segmentation_tools": "Delimitation",
+		"segmentation_images": "Images",
+		"segmentation_info": "VERSION EN: Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer",
+		"about_opt": "À propos"
+	},
 	"tb": {
 		"rendering_opt": "Appearance",
 		"tools_opt": "Tools",

@@ -309,7 +309,7 @@ export class EDLRenderer{
 		viewer.renderer.render(viewer.clippingTool.sceneVolume, camera);
 		viewer.renderer.render(viewer.transformationTool.scene, camera);
 		
-		viewer.renderer.setViewport(width - viewer.navigationCube.width, 
+		viewer.renderer.setViewport(0, 
 									0, 
 									viewer.navigationCube.width, viewer.navigationCube.width);
 		viewer.renderer.render(viewer.navigationCube, viewer.navigationCube.camera);		

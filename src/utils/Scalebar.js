@@ -12,7 +12,7 @@ export class Scalebar{
 		const defaultValue = 5;
 		
 		this.domElement = $(`
-			<div style="position: absolute; text-align: center; right: 84px; top: 26px;">
+			<div style="position: absolute; text-align: center; right: 84px; bottom: 26px;">
 				<img id="scalebar_image" src="${Potree.resourcePath}/images/scalebar.svg" style="height: 32px; width: ${defaultSize}px; transform-origin: 100% 50%;">
 				<div id="scalebar_value" style="position: absolute; color: black; font-weight: bold; top: 45%; right: 0%; transform: translate(-20%, -50%);"></div>
 			</div>

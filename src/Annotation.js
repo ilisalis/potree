@@ -474,7 +474,7 @@ export class Annotation extends EventDispatcher {
 		});
 	}
 
-	updateBounds () {
+	updateBounds () { //Tenir compte de la visibility ?
 		let box = new THREE.Box3();
 
 		if (this.position) {
@@ -512,19 +512,33 @@ export class Annotation extends EventDispatcher {
 		this.traverse(annotation => {
 			annotations.push(annotation);
 		});
+		return annotations;
+	}
+	
+	ascendants () {
+		let annotations = [];
+		
+		let traverseNode = node => {
+			for (let child of node.children) {
+				traverseNode(child);
+			}
+			if (node !== this) {
+				annotations.push(node);
+			}
+		};
 
+		traverseNode(this);
 		return annotations;
 	}
 
 	descendants () {
 		let annotations = [];
 
-		this.traverse(annotation => {
+		this.traverseDescendants(annotation => {
 			if (annotation !== this) {
 				annotations.push(annotation);
 			}
 		});
-
 		return annotations;
 	}
 

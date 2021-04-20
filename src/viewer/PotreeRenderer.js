@@ -98,7 +98,7 @@ export class PotreeRenderer {
 		renderer.render(viewer.clippingTool.sceneVolume, camera);
 		renderer.render(viewer.transformationTool.scene, camera);
 		
-		renderer.setViewport(width - viewer.navigationCube.width, 
+		renderer.setViewport(0, 
 							0, 
 							viewer.navigationCube.width, viewer.navigationCube.width);
 		renderer.render(viewer.navigationCube, viewer.navigationCube.camera);		

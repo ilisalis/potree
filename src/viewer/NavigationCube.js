@@ -81,14 +81,17 @@ export class NavigationCube extends THREE.Object3D {
 			
 			this.pickedFace = null;
 			let mouse = new THREE.Vector2();
-			mouse.x = event.clientX - (window.innerWidth - this.width);
-			mouse.y = event.clientY - (window.innerHeight - this.width);
 			
-			if(mouse.x < 0 || mouse.y < 0) return;
-
+			let size = this.viewer.renderer.getSize(new THREE.Vector2());
+			
+			mouse.x = event.layerX;
+			mouse.y = event.layerY - (size.y - this.width);
+			
 			mouse.x = (mouse.x / this.width) * 2 - 1;
 			mouse.y = -(mouse.y / this.width) * 2 + 1;
-
+			
+			if(! (mouse.x >= -1.0 && mouse.x <= 1.0 && mouse.y >= -1.0 && mouse.y <= 1.0)) return;
+			
 			let raycaster = new THREE.Raycaster();
 			raycaster.setFromCamera(mouse, this.camera);
 			raycaster.ray.origin.sub(this.camera.getWorldDirection(new THREE.Vector3()));
